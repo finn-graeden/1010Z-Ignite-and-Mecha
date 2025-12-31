@@ -268,6 +268,12 @@ void lemlib::update() {
         // Compute nearest multiple of 90
         int nearest = static_cast<int>(std::round(deg / 90.0)) * 90;
 
+        float sanitized = lemlib::sanitizeAngle(deg, false);
+
+        float diff = sanitized - nearest;
+
+        centerToWall = cosf(lemlib::degToRad(diff))*centerToWall;
+
         // Wrap 360 back to 0
         if (nearest == 360) nearest = 0;
 
@@ -323,8 +329,16 @@ void lemlib::update() {
         // Compute nearest multiple of 90
         int nearest = static_cast<int>(std::round(deg / 90.0)) * 90;
 
+        float sanitized = lemlib::sanitizeAngle(deg, false);
+
+        float diff = sanitized - nearest;
+
+        centerToWall = cosf(lemlib::degToRad(diff))*centerToWall;
+
         // Wrap 360 back to 0
         if (nearest == 360) nearest = 0;
+
+
         switch (nearest){
             case 0:
                 if (mclLocal.horizontalRight){
