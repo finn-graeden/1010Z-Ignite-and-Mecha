@@ -28,22 +28,22 @@ pros::Controller controller(pros::E_CONTROLLER_MASTER);
 
 // Left and Right drive smotor groups
 pros::MotorGroup
-    leftMotors({6, -20, 21},
+    leftMotors({-1, -2, -3},
                pros::MotorGearset::blue); 
                                           
 pros::MotorGroup rightMotors(
-    {-8, -9, 13},
+    {4, 5, 6},
     pros::MotorGearset::blue); 
 
 
 // Inertial Sensor on port 19
-pros::Imu imu(21);
+pros::Imu imu(11);
 
 // Limit switch for changing code
 pros::adi::DigitalIn limitSwitch('d');
 
 // Optical sensor for color sosrt
-pros::Optical color(11);
+pros::Optical color(20);
 
 
 // Matchloader piston
@@ -56,9 +56,9 @@ pros::adi::DigitalOut wheelLift('b');
 pros::adi::DigitalOut descore('e');
 
 // Intake motors
-pros::Motor intake(2, pros::MotorGearset::blue);
-pros::Motor intake_upper(10, pros::MotorGearset::green);
-pros::Motor direction(-15, pros::v5::MotorGears::blue);
+pros::Motor intake(-12, pros::MotorGearset::blue);
+pros::Motor intake_upper(-13, pros::MotorGearset::green);
+pros::Motor direction(8, pros::v5::MotorGears::blue);
 
 // Horizontal tracking wheel
 pros::Rotation horizontalEnc(1);
@@ -201,14 +201,8 @@ void intakeControl() {
             middle = false;
             upperSpeed += 127;
             intakeSpeed += 127;
+            directionSpeed += 127;
             
-        } 
-        else if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_Y) || scoring){
-            middle = false;
-            upperSpeed += 127;
-            intakeSpeed += 127;
-            directionSpeed +=127;
-
         } 
         else if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_L2) || outtaking){
             middle = false;
