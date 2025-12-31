@@ -43,7 +43,7 @@ pros::Imu imu(11);
 pros::adi::DigitalIn limitSwitch('d');
 
 // Optical sensor for color sosrt
-pros::Optical color(20);
+pros::Optical color(7);
 
 
 // Matchloader piston
@@ -254,7 +254,7 @@ void intakeControl() {
 
 
         // Color sort
-        /*
+        
         if(!isSkills && !cancel){
             if((redTeam && blueBall) || (!redTeam && redBall)){
                 if(!middle){
@@ -276,7 +276,6 @@ void intakeControl() {
                 }
             }
         }
-            */
 
         
 
