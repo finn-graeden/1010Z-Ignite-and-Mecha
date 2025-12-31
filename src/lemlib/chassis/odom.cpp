@@ -256,7 +256,7 @@ void lemlib::update() {
             float scaledAddition = abs((verticalDis1+mclLocal.vert1VerticalOffset)-(verticalDis2+mclLocal.vert2VerticalOffset))
                 *mclLocal.vert1HorizontalOffset/(mclLocal.vert1HorizontalOffset-mclLocal.vert2HorizontalOffset);
             // Computes total distance 
-            if(verticalDis1< verticalDis2){
+            if(verticalDis1+mclLocal.vert1VerticalOffset< verticalDis2+mclLocal.vert2VerticalOffset){
                 centerToWall = scaledAddition + verticalDis1 + mclLocal.vert1VerticalOffset;
             } else {
                 centerToWall = scaledAddition + verticalDis2 + mclLocal.vert2VerticalOffset;
@@ -270,6 +270,8 @@ void lemlib::update() {
 
         // Wrap 360 back to 0
         if (nearest == 360) nearest = 0;
+
+
         switch (nearest){
             case 0:
                 if (mclLocal.verticalForwards){
@@ -309,7 +311,7 @@ void lemlib::update() {
         if (abs(horizontalOffsetTheoretical-((horizontalDis1+mclLocal.horiz1VerticalOffset)-(horizontalDis2+mclLocal.horiz2VerticalOffset)))<0.5){
             float x = abs((horizontalDis1+mclLocal.horiz1VerticalOffset)-(horizontalDis2+mclLocal.horiz2VerticalOffset))
                 *mclLocal.horiz1HorizontalOffset/(mclLocal.horiz1HorizontalOffset-mclLocal.horiz2HorizontalOffset);
-            if(horizontalDis1< horizontalDis2){
+            if(horizontalDis1+mclLocal.horiz1VerticalOffset< horizontalDis2+mclLocal.horiz2VerticalOffset){
                 centerToWall = x + horizontalDis1 + mclLocal.horiz1VerticalOffset;
             } else {
                 centerToWall = x + horizontalDis2 + mclLocal.horiz2VerticalOffset;
