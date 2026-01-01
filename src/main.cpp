@@ -3,6 +3,7 @@
 #include "autos.h"
 #include "lemlib/api.hpp" // IWYU pragma: keep
 #include "lemlib/chassis/chassis.hpp"
+#include "lemlib/chassis/trackingWheel.hpp"
 #include "liblvgl/llemu.hpp"
 #include "pros/adi.h"
 #include "pros/adi.hpp"
@@ -61,21 +62,23 @@ pros::Motor intake_upper(-13, pros::MotorGearset::green);
 pros::Motor direction(8, pros::v5::MotorGears::blue);
 
 // Horizontal tracking wheel
-pros::Rotation horizontalEnc(1);
+pros::Rotation horizontalEnc(14);
 
 // vertical tracking wheel 
-pros::Rotation verticalEnc(-12);
+pros::Rotation verticalEnc(-15);
 
 
 // Distance sensors for a simplified version of Monte Carlo Localization
 pros::Distance back1(1);
 pros::Distance back2(2);
-pros::Distance right1(19);
-pros::Distance right2(20);
+pros::Distance right1(9);
+pros::Distance right2(21);
 
 
-lemlib::MCLSensors mcl(nullptr, nullptr, &right1, &right2, false, true, 1.75, -0.25, 5,
-     4, 1.75, -0.25, 5, 4);
+lemlib::MCLSensors mcl(nullptr, nullptr, &right1, &right2, false, false, 0, 0, 0,
+     0, 2.25, -2.25, 3.5, 5.5);
+
+
 // Horizontal Tracking wheel lemlib settings
 lemlib::TrackingWheel horizontal(&horizontalEnc, 2, 1);
 
@@ -87,10 +90,10 @@ lemlib::TrackingWheel vertical(&verticalEnc, 2, 0.5);
 lemlib::Drivetrain drivetrain(
     &leftMotors,              // left motor group
     &rightMotors,             // right motor group
-    10,                       // 10 inch track width
-    lemlib::Omniwheel::NEW_2, // using new 4" omnis
+    11,                       // 10 inch track width
+    lemlib::Omniwheel::NEW_325, // using new 4" omnis
     600 * 0.75,               // drivetrain rpm is 360
-    2 // horizontal drift is 2. If we had traction wheels, it would have been 8
+    8 // horizontal drift is 2. If we had traction wheels, it would have been 8
 );
 
 
@@ -507,5 +510,5 @@ void opcontrol() {
 
     }
     // Delay to save resources for other tasks
-	pros::delay(10);
+	pros::delay(20);
 }

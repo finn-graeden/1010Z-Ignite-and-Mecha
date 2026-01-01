@@ -101,42 +101,8 @@ void skills(){
 
 // Right side long goal only code
 void redRightLong(){
-    chassis.setPose({0, 0, 17});
-    descore.set_value(HIGH);
-	intaking = true;
-	chassis.moveToPoint(5, 26, 4000, {.maxSpeed = 90});
-	pros::delay(550);
-	matchLoader.set_value(HIGH);
-	chassis.swingToPoint(29, 48, DriveSide::RIGHT, 700);
-	matchLoader.set_value(LOW);
-	chassis.moveToPoint(23, 41, 1000, {}, false);
-	chassis.swingToHeading(80, DriveSide::RIGHT, 300);
-	chassis.moveToPoint(15, 22, 4000, {.forwards = false, .minSpeed=30}, false);
-	chassis.turnToPoint(31, 10, 1000, {.forwards = false});
-	chassis.moveToPoint(31, 10, 4000, {.forwards = false});
-    intaking = false;
-	chassis.moveToPoint(31, 25, 2000, {.forwards= false, .maxSpeed = 70}, false);
-    scoring=true;
-	matchLoader.set_value(HIGH);
-    pros::delay(1500);
-    scoring = false;
-    intaking= true;
-	chassis.moveToPoint(32, -10, 2000, {.maxSpeed = 70});
-    pros::delay(2000);
-
-	chassis.moveToPoint(32.3, 25, 2000, {.forwards= false, .maxSpeed = 70}, false);
-    intaking = false;
-    scoring = true;
-    pros::delay(1000);
-    matchLoader.set_value(LOW);
-    chassis.moveToPoint(32.3, 13, 4000);
-    scoring=false;
-    chassis.turnToPoint(23, 21, 700, {.forwards=false});
-    chassis.moveToPoint(23, 21, 4000, {.forwards= false});
-    chassis.turnToHeading(180, 700, {}, false);
-    descore.set_value(LOW);
-    chassis.moveToPoint(23, 35, 1000, {.forwards = false });
     
+	ramsete({squiggles::Pose(0, 0, 0), squiggles::Pose(0, 24, 0)}, 4000 );
 
 
 }

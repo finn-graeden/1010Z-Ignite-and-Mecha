@@ -22,7 +22,7 @@ void lemlib::Chassis::ramsete(std::vector<squiggles::Pose> points, float timeout
     Timer timer(timeout);
 
     squiggles::Constraints constraints(1.9, 10, 10);
-    squiggles::TankModel model(10, constraints);
+    squiggles::TankModel model(0.28, constraints);
     squiggles::SplineGenerator drive(constraints, std::make_shared<squiggles::TankModel>(1, constraints));
     auto generatedPoints = drive.generate(points);
 
@@ -32,8 +32,8 @@ void lemlib::Chassis::ramsete(std::vector<squiggles::Pose> points, float timeout
         currentpose = getPose(true);
         //squiggles::ProfilePoint goal = generatedPoints[ceil(timer.getTimePassed()/0.1)];
         squiggles::ProfilePoint goal = drive.get_point_at_time(points[0], points.back(), generatedPoints, timer.getTimePassed());
-        float ex = cosf(currentpose.theta)*(goal.vector.pose.x/39.3701-currentpose.x)+sinf(currentpose.theta)*(goal.vector.pose.y/39.3701-currentpose.y);
-        float ey = -1*sinf(currentpose.theta)*(goal.vector.pose.x/39.3701-currentpose.x)+cosf(currentpose.theta)*(goal.vector.pose.y/39.3701-currentpose.y);
+        float ex = cosf(currentpose.theta)*(goal.vector.pose.x-currentpose.x/39.3701)+sinf(currentpose.theta)*(goal.vector.pose.y-currentpose.y/39.3701);
+        float ey = -1*sinf(currentpose.theta)*(goal.vector.pose.x-currentpose.x/39.3701)+cosf(currentpose.theta)*(goal.vector.pose.y-currentpose.y/39.3701);
         float etheta = goal.vector.pose.yaw-currentpose.theta;
         float wd = goal.vector.vel*goal.curvature;
         float vd = goal.vector.vel;
@@ -46,11 +46,11 @@ void lemlib::Chassis::ramsete(std::vector<squiggles::Pose> points, float timeout
         float percentageAngular = mps/1.9;
         float percentageLinear = v/1.9;
         if (forwards){
-            drivetrain.leftMotors -> move(percentageLinear*127 + percentageAngular*127);
-            drivetrain.rightMotors -> move(percentageLinear*127 - percentageAngular*127);
+            drivetrain.leftMotors -> move(percentageLinear*127 /*+ percentageAngular*127*/);
+            drivetrain.rightMotors -> move(percentageLinear*127 /*- percentageAngular*127*/);
         }else {
-            drivetrain.leftMotors -> move(-percentageLinear*127 - percentageAngular*127);
-            drivetrain.rightMotors -> move(-percentageLinear*127 + percentageAngular*127);
+            drivetrain.leftMotors -> move(-percentageLinear*127 /*- percentageAngular*127*/);
+            drivetrain.rightMotors -> move(-percentageLinear*127 /*+ percentageAngular*127*/);
         }
 
         
