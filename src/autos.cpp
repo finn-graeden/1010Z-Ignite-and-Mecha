@@ -2,7 +2,7 @@
 #include "geometry/pose.hpp"
 #include "main.h"
 #include "lemlib/api.hpp" // IWYU pragma: keep
-#include "lemlib/asset.hpp"
+#include "lemlib/asset.hpp" // IWYU pragma: keep
 #include "lemlib/chassis/chassis.hpp"
 #include "math/quinticpolynomial.hpp"// IWYU pragma: keep
 #include "physicalmodel/physicalmodel.hpp"// IWYU pragma: keep
@@ -15,7 +15,9 @@
 #include "lemlib-tarball/api.hpp" // IWYU pragma: keep
 #include "squiggles.hpp"// IWYU pragma: keep
 
-ASSET(skills_txt);
+//ASSET(skills_txt);
+
+//lemlib_tarball::Decoder skillsFollow(skills_txt);
 
 void ramsete(std::vector<squiggles::Pose> points, float timeout, bool async=false, bool forwards = true){
     for (int i = 0; i < points.size(); i++){
@@ -30,71 +32,28 @@ void ramsete(std::vector<squiggles::Pose> points, float timeout, bool async=fals
 // Skills code
 void skills(){
 
-
-    chassis.setPose({48, 8, 0});
-	chassis.moveToPoint(47, 44, 4000, {.maxSpeed = 50});
-	chassis.turnToHeading(90, 900);
-	matchLoader.set_value(HIGH);
+	chassis.setPose({17.2, -51.2, 0});
 	intaking = true;
-	descore.set_value(HIGH);
-	chassis.moveToPoint(58.5, 46.2, 2000, {.maxSpeed = 80}, false);
-	chassis.turnToHeading(90, 900);
-	pros::delay(3000);
-	intaking=false;
-	matchLoader.set_value(LOW);
-    //chassis.follow(skillsFollow["firstscore"], 8, 7000, false);
-	chassis.turnToHeading(-90, 900);
-	chassis.moveToPoint(-25, 43, 2000, {.forwards = false, .maxSpeed = 50}, false);
-	scoring = true;
-	pros::delay(2000);
-	scoring =false;
-	intaking = true;
-	matchLoader.set_value(HIGH);
-	chassis.moveToPoint(-50.5, 43.5, 2000, {.maxSpeed = 80}, false);
-	
-	pros::delay(3000);
+	chassis.moveToPoint(20, -26, 1000, {.maxSpeed = 80});
+	chassis.turnToHeading(-45, 700);
+	chassis.moveToPoint(14.5, -17.5, 2000, {.maxSpeed = 50}, false);
 	intaking = false;
-	chassis.moveToPoint(-23, 43, 2000, {.forwards = false, .maxSpeed = 50}, false);
-	scoring = true;
-	pros::delay(2500);
-	scoring =false;
+	outtaking = true;
+	pros::delay(1500); // Change to 1000 later
+	outtaking = false;
+	chassis.moveToPoint(49, -51, 2000, {.forwards = false, .maxSpeed = 100}, false);
+	chassis.turnToHeading(180, 700);
+	chassis.moveToPoint(48, -60, 1000);
 	intaking = true;
-	matchLoader.set_value(LOW);
-	//chassis.follow(skillsFollow["navigate"], 17, 7000);
-	chassis.moveToPoint(-36, 45.5, 4000);
-	chassis.turnToHeading(180, 900);
-	chassis.moveToPoint(-36, -48, 4000, {.maxSpeed = 50});
-	chassis.turnToHeading(-90, 900, {.maxSpeed = 70});
-	matchLoader.set_value(HIGH);
-	chassis.moveToPoint(-55.5, -48, 2000, {.maxSpeed = 80}, false);
-	pros::delay(3000);
-	matchLoader.set_value(LOW);
-	intaking=false;
-	//chassis.follow(skillsFollow["navigate 2"], 10, 7000, false);
-	chassis.turnToHeading(90, 900);
-	chassis.moveToPoint(27, -46, 2000, {.forwards = false, .maxSpeed = 80}, false);
-	scoring = true;
-	pros::delay(2000);
-	scoring =false;
-	intaking = true;
-	matchLoader.set_value(HIGH);
-	chassis.moveToPoint(58, -47, 2000, {.maxSpeed = 80});
-
-	pros::delay(3000);
+	pros::delay(1200);
+	chassis.moveToPoint(49, -34, 1000, {.forwards = false, .maxSpeed = 80} ,false);
+	pros::delay(1700);
 	intaking = false;
-	matchLoader.set_value(LOW);
-	chassis.moveToPoint(27, -47, 2000, {.forwards = false, .maxSpeed = 80}, false);
-	scoring = true;
-	pros::delay(2500);
-	scoring =false;
-	intaking = true;
-	chassis.moveToPoint(37, -46, 2000);
-	chassis.turnToHeading(180, 900);
-	chassis.moveToPoint(37, 0, 2000, {.forwards = false});
-	chassis.turnToHeading(-90, 900);
-	wheelLift.set_value(HIGH);
-	chassis.moveToPoint(56, -0, 4000, {.forwards = false});
-	
+	chassis.moveToPoint(45, -43, 2000);
+	chassis.moveToPoint(35, -30, 2000, {.forwards = false});
+	chassis.turnToHeading(180, 700);
+
+    
 
 }
 
@@ -102,7 +61,7 @@ void skills(){
 // Right side long goal only code
 void redRightLong(){
     
-	ramsete({squiggles::Pose(0, 0, 0), squiggles::Pose(0, 24, 0)}, 4000 );
+	//chassis.follow(skillsFollow["firstscore"], 8, 7000, false);
 
 
 }

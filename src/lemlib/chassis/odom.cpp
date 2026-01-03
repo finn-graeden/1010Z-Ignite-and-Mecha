@@ -272,7 +272,7 @@ void lemlib::update() {
 
         float diff = sanitized - nearest;
 
-        centerToWall = cosf(lemlib::degToRad(diff))*centerToWall;
+        centerToWall = abs(cosf(lemlib::degToRad(diff)))*centerToWall;
 
         // Wrap 360 back to 0
         if (nearest == 360) nearest = 0;
@@ -281,30 +281,30 @@ void lemlib::update() {
         switch (nearest){
             case 0:
                 if (mclLocal.verticalForwards){
-                    mclY = 70.2 - centerToWall;
+                    mclY = 71.5 - centerToWall;
                 } else {
-                    mclY = -70.2 + centerToWall;
+                    mclY = -71.5 + centerToWall;
                 }
                 break;
             case 90:
                 if (mclLocal.verticalForwards){
-                    mclX = 70.2 - centerToWall;
+                    mclX = 71.5 - centerToWall;
                 } else {
-                    mclX = -70.2 + centerToWall;
+                    mclX = -71.5 + centerToWall;
                 }
                 break;
             case 180:
                 if (mclLocal.verticalForwards){
-                    mclY = -70.2 + centerToWall;
+                    mclY = -71.5 + centerToWall;
                 } else {
-                    mclY = 70.2 - centerToWall;
+                    mclY = 71.5 - centerToWall;
                 }
                 break;
             case 270:
                 if (mclLocal.verticalForwards){
-                    mclX = -70.2 + centerToWall;
+                    mclX = -71.5 + centerToWall;
                 } else {
-                    mclX = 70.2 - centerToWall;
+                    mclX = 71.5 - centerToWall;
                 }
                 break;
         }
@@ -333,7 +333,7 @@ void lemlib::update() {
 
         float diff = sanitized - nearest;
 
-        centerToWall = cosf(lemlib::degToRad(diff))*centerToWall;
+        centerToWall = abs(cosf(lemlib::degToRad(diff)))*centerToWall;
 
         // Wrap 360 back to 0
         if (nearest == 360) nearest = 0;
@@ -342,30 +342,30 @@ void lemlib::update() {
         switch (nearest){
             case 0:
                 if (mclLocal.horizontalRight){
-                    mclX = 70.2 - centerToWall;
+                    mclX = 71.2 - centerToWall;
                 } else {
-                    mclX = -70.2 + centerToWall;
+                    mclX = -71.2 + centerToWall;
                 }
                 break;
             case 90:
                 if (mclLocal.horizontalRight){
-                    mclY = 70.2 - centerToWall;
+                    mclY = -71.2 + centerToWall;
                 } else {
-                    mclY = -70.2 + centerToWall;
+                    mclY = 71.2 - centerToWall;
                 }
                 break;
             case 180:
                 if (mclLocal.horizontalRight){
-                    mclX = -70.2 + centerToWall;
+                    mclX = -71.2 + centerToWall;
                 } else {
-                    mclX = 70.2 - centerToWall;
+                    mclX = 71.2 - centerToWall;
                 }
                 break;
             case 270:
                 if (mclLocal.horizontalRight){
-                    mclY = -70.2 + centerToWall;
+                    mclY = 71.2 - centerToWall;
                 } else {
-                    mclY = 70.2 - centerToWall;
+                    mclY = -71.2 + centerToWall;
                 }
                 break;
             }

@@ -13,14 +13,12 @@
 #include "lemlib/pose.hpp"
 #include "pros/misc.h"
 
-
-
 // Global Variables for controlling color sort and what code is run
 bool redTeam = true;
 bool isSkills = false;
 bool arcade = true;
 
-int code = 5;
+int code = 2;
 int numOfCodes = 5;
 
 // controller
@@ -48,13 +46,15 @@ pros::Optical color(7);
 
 
 // Matchloader piston
-pros::adi::DigitalOut matchLoader('c');
+pros::adi::DigitalOut matchLoader('a');
 
 // Tracking Wheel lift piston
 pros::adi::DigitalOut wheelLift('b');
 
 // Goal Descore piston
-pros::adi::DigitalOut descore('e');
+pros::adi::DigitalOut descore('g');
+
+pros::adi::DigitalOut hood('h');
 
 // Intake motors
 pros::Motor intake(-12, pros::MotorGearset::blue);
@@ -62,7 +62,7 @@ pros::Motor intake_upper(-13, pros::MotorGearset::green);
 pros::Motor direction(8, pros::v5::MotorGears::blue);
 
 // Horizontal tracking wheel
-pros::Rotation horizontalEnc(14);
+pros::Rotation horizontalEnc(-14);
 
 // vertical tracking wheel 
 pros::Rotation verticalEnc(-15);
@@ -101,7 +101,7 @@ lemlib::Drivetrain drivetrain(
 lemlib::ControllerSettings
     linearController(11,  // proportional gain (kP)
                      0,   // integral gain (kI)
-                     30,   // derivative gain (kD)
+                     45,   // derivative gain (kD)
                      3, // anti windup
                     1, // small error range, in inches
                                               100, // small error range timeout, in milliseconds
@@ -264,7 +264,7 @@ void intakeControl() {
                     direction.move(-127);
                     intake.move(50);
                     intake_upper.move(50);
-                    pros::delay(300);
+                    pros::delay(700);
                     direction.brake();
                     intake.brake();
                     intake_upper.brake();
@@ -272,7 +272,7 @@ void intakeControl() {
                     direction.move(127);
                     intake.move(50);
                     intake_upper.move(50);
-                    pros::delay(500);
+                    pros::delay(700);
                     direction.brake();
                     intake.brake();
                     intake_upper.brake();
@@ -423,6 +423,7 @@ void opcontrol() {
     int loaderStatus = 1;
     int liftStatus = 1;
     int lifStatus = 1;
+    int hoodStatus = 1;
     while (true) {
         float t = 0.1;  // can be changed
     float tt = 0.1; // can be changed
@@ -506,6 +507,21 @@ void opcontrol() {
     	}
 		if(!controller.get_digital(pros::E_CONTROLLER_DIGITAL_UP) && lifStatus == 4){
         	lifStatus = 1;
+    	}
+
+        if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_Y) && hoodStatus == 1){
+        	hood.set_value(HIGH);
+        	hoodStatus = 2;
+    	}
+		if (!controller.get_digital(pros::E_CONTROLLER_DIGITAL_Y) && hoodStatus == 2){
+        	hoodStatus = 3;
+    	}
+		if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_Y) and hoodStatus == 3){
+        	hood.set_value(LOW);
+        	hoodStatus = 4;
+    	}
+		if(!controller.get_digital(pros::E_CONTROLLER_DIGITAL_Y) && hoodStatus == 4){
+        	hoodStatus = 1;
     	}
 
     }
