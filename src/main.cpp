@@ -3,6 +3,7 @@
 #include "autos.h"
 #include "lemlib/api.hpp" // IWYU pragma: keep
 #include "lemlib/chassis/chassis.hpp"
+#include "lemlib/chassis/odom.hpp"
 #include "lemlib/chassis/trackingWheel.hpp"
 #include "liblvgl/llemu.hpp"
 #include "pros/adi.h"
@@ -12,13 +13,14 @@
 #include <string>
 #include "lemlib/pose.hpp"
 #include "pros/misc.h"
+#include "pros/motors.h"
 
 // Global Variables for controlling color sort and what code is run
 bool redTeam = true;
-bool isSkills = false;
+bool isSkills = true;
 bool arcade = true;
 
-int code = 2;
+int code = 1;
 int numOfCodes = 5;
 
 // controller
@@ -39,7 +41,7 @@ pros::MotorGroup rightMotors(
 pros::Imu imu(11);
 
 // Limit switch for changing code
-pros::adi::DigitalIn limitSwitch('d');
+pros::adi::DigitalIn limitSwitch('b');
 
 // Optical sensor for color sosrt
 pros::Optical color(7);
@@ -49,7 +51,7 @@ pros::Optical color(7);
 pros::adi::DigitalOut matchLoader('a');
 
 // Tracking Wheel lift piston
-pros::adi::DigitalOut wheelLift('b');
+pros::adi::DigitalOut wheelLift('d');
 
 // Goal Descore piston
 pros::adi::DigitalOut descore('g');
@@ -101,7 +103,7 @@ lemlib::Drivetrain drivetrain(
 lemlib::ControllerSettings
     linearController(11,  // proportional gain (kP)
                      0,   // integral gain (kI)
-                     45,   // derivative gain (kD)
+                     50,   // derivative gain (kD)
                      3, // anti windup
                     1, // small error range, in inches
                                               100, // small error range timeout, in milliseconds
@@ -178,14 +180,19 @@ void intakeControl() {
     float upperSpeed = 0;
     float intakeSpeed = 0;
     float directionSpeed = 0;
-
-    if(code == 1){
-        cancel = true;
-    }
+    intake.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
+    intake_upper.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
+    direction.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
+    
 
     descore.set_value(LOW);
 
     while (1) {
+        
+        if(isSkills){
+        cancel = true;
+        } else cancel = false;
+
 
         // Detects what color of ball is in the intake
         if ((color.get_hue() < 25 && color.get_hue() > 5) && color.get_proximity()>80){
@@ -210,7 +217,7 @@ void intakeControl() {
         else if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_L2) || outtaking){
             middle = false;
             upperSpeed -= 127;
-            intakeSpeed -= 90;
+            intakeSpeed -= 50;
             directionSpeed -=127;
 
         } 
@@ -218,7 +225,7 @@ void intakeControl() {
             middle = true;
             upperSpeed +=127;
             intakeSpeed +=127;
-            directionSpeed -=80;
+            directionSpeed -=50;
         } else {
             middle = false;
             upperSpeed = 0;
@@ -245,17 +252,19 @@ void intakeControl() {
     	}
 
         // Run motors
-        intake_upper.move(upperSpeed);
-        intake.move(intakeSpeed);
-        direction.move(directionSpeed);
+        if (upperSpeed != 0)intake_upper.move(upperSpeed);
+        else intake_upper.brake();
+        if (intakeSpeed != 0)intake.move(intakeSpeed);
+        else intake.brake();
+        if (directionSpeed != 0)direction.move(directionSpeed);
+        else direction.brake();
         upperSpeed = 0;
         intakeSpeed = 0;
         directionSpeed = 0;
 
         // Delay to save resourses for other tasks
         pros::delay(10);
-
-
+        
         // Color sort
         
         if(!isSkills && !cancel){
@@ -264,7 +273,7 @@ void intakeControl() {
                     direction.move(-127);
                     intake.move(50);
                     intake_upper.move(50);
-                    pros::delay(700);
+                    pros::delay(400);
                     direction.brake();
                     intake.brake();
                     intake_upper.brake();
@@ -272,7 +281,7 @@ void intakeControl() {
                     direction.move(127);
                     intake.move(50);
                     intake_upper.move(50);
-                    pros::delay(700);
+                    pros::delay(400);
                     direction.brake();
                     intake.brake();
                     intake_upper.brake();
@@ -317,15 +326,14 @@ void screenUpdate(){
         pros::lcd::set_text(3, "X: " + std::to_string(chassis.getPose().x));
         pros::lcd::set_text(4, "Y: " + std::to_string(chassis.getPose().y));
 	pros::lcd::set_text(5, "Theta: " + std::to_string(chassis.getPose().theta));
+    pros::lcd::set_text(6, "Resets: " + std::to_string(numOfResets));
 	switch (code){
 		case 1:
 			pros::lcd::set_text(1, "Skills");
-            isSkills = true;
             break;
 			
 		case 2:
 			pros::lcd::set_text(1, "Right");
-            isSkills = false;
             break;
 			
 		case 3:
@@ -391,6 +399,7 @@ void competition_initialize() {
 void autonomous() {
     switch (code){
         case 1:
+            isSkills = true;
             skills();
 			break;
         case 2:
@@ -411,13 +420,14 @@ void autonomous() {
 
 // Dirver Control Code
 void opcontrol() {
+    if (code == 1)isSkills = true;
     scoring = false;
 	intaking = false;
 	outtaking = false;
     // loop to continuously update motors
 
     if(code == 1){
-        wheelLift.set_value(LOW);
+        wheelLift.set_value(HIGH);
     }
     
     int loaderStatus = 1;

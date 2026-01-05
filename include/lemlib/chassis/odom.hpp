@@ -3,6 +3,8 @@
 #include "lemlib/chassis/chassis.hpp"
 #include "lemlib/pose.hpp"
 
+extern int numOfResets;
+
 namespace lemlib {
 /**
  * @brief Set the sensors to be used for odometry
@@ -12,6 +14,7 @@ namespace lemlib {
  */
 void setSensors(lemlib::OdomSensors sensors, lemlib::Drivetrain drivetrain);
 void setMCL(lemlib::MCLSensors* mclsensors);
+
 /**
  * @brief Get the pose of the robot
  *

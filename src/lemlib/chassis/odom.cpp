@@ -21,6 +21,7 @@ lemlib::MCLSensors mclLocal(nullptr, nullptr, nullptr, nullptr, false, false, 0,
 lemlib::Pose odomPose(0, 0, 0); // the pose of the robot
 lemlib::Pose odomSpeed(0, 0, 0); // the speed of the robot
 lemlib::Pose odomLocalSpeed(0, 0, 0); // the local speed of the robot
+lemlib::Pose prevPose(0, 0, 0);
 
 // Global variables for constant distance sensor reset
 float prevVertical = 0;
@@ -30,6 +31,8 @@ float prevHorizontal = 0;
 float prevHorizontal1 = 0;
 float prevHorizontal2 = 0;
 float prevImu = 0;
+
+int numOfResets = 0;
 
 // Defines drivetrains sensors for use with odometry locally
 void lemlib::setSensors(lemlib::OdomSensors sensors, lemlib::Drivetrain drivetrain) {
@@ -376,21 +379,25 @@ void lemlib::update() {
 
 
     // save previous pose
-    lemlib::Pose prevPose = odomPose;
+    prevPose = odomPose;
 
     // calculate global x and y
-    if (mclX == 100000){
-        odomPose.x += localY * sin(avgHeading);
-        odomPose.x += localX * -cos(avgHeading);
-    } else {
+    odomPose.x += localY * sin(avgHeading);
+    odomPose.x += localX * -cos(avgHeading);
+
+    odomPose.y += localY * cos(avgHeading);
+    odomPose.y += localX * sin(avgHeading);
+
+    if(mclX != 1000000 && abs(odomPose.x-mclX)< 2){
         odomPose.x = mclX;
+        numOfResets += 1;
     }
-    if (mclY == 100000){
-        odomPose.y += localY * cos(avgHeading);
-        odomPose.y += localX * sin(avgHeading);
-    } else {
+    if(mclY != 1000000 && abs(odomPose.y-mclY)< 2){
         odomPose.y = mclY;
+        numOfResets += 1;
     }
+
+
     odomPose.theta = heading;
 
     // calculate speed

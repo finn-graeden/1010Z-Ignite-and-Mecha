@@ -26,6 +26,7 @@
  */
 #include "lemlib/chassis/chassis.hpp"
 #include "pros/adi.hpp"
+#include "pros/motor_group.hpp"
 #define PROS_USE_SIMPLE_NAMES
 
 /**
@@ -72,9 +73,15 @@ extern lemlib::Chassis chassis;
 extern bool intaking;
 extern bool scoring;
 extern bool outtaking;
+extern bool middleGoal;
+extern bool isSkills;
+extern bool redTeam;
+extern pros::MotorGroup rightMotors;
+extern pros::MotorGroup leftMotors;
 extern pros::adi::DigitalOut matchLoader;
 extern pros::adi::DigitalOut descore;
 extern pros::adi::DigitalOut wheelLift;
+extern pros::adi::DigitalOut hood;
 #ifdef __cplusplus
 }
 #endif
