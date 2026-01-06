@@ -34,6 +34,8 @@ float prevImu = 0;
 
 int numOfResets = 0;
 
+int acceptedMCLError = 3;
+
 // Defines drivetrains sensors for use with odometry locally
 void lemlib::setSensors(lemlib::OdomSensors sensors, lemlib::Drivetrain drivetrain) {
     odomSensors = sensors;
@@ -388,11 +390,11 @@ void lemlib::update() {
     odomPose.y += localY * cos(avgHeading);
     odomPose.y += localX * sin(avgHeading);
 
-    if(mclX != 1000000 && abs(odomPose.x-mclX)< 5){
+    if(mclX != 1000000 && abs(odomPose.x-mclX)< acceptedMCLError){
         odomPose.x = mclX;
         numOfResets += 1;
     }
-    if(mclY != 1000000 && abs(odomPose.y-mclY)< 5){
+    if(mclY != 1000000 && abs(odomPose.y-mclY)< acceptedMCLError){
         odomPose.y = mclY;
         numOfResets += 1;
     }

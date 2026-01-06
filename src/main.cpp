@@ -306,7 +306,7 @@ void centerButton(){
 void on_center_button() {
     while(1){
     //change to 0 to create auton roulette
-    if (limitSwitch.get_new_press()==1){
+    if (pros::lcd::read_buttons()==001){
         code ++;
     }
 	
@@ -365,8 +365,7 @@ void initialize() {
 	color.set_led_pwm(100);
     pros::lcd::initialize(); // initialize brain screen
     chassis.calibrate(); // calibrate sensors
-    mcl.calibrate();
-	pros::delay(1000); // waits for sensors to callibrate
+    mcl.calibrate(); // clibrate distance sensors
 	pros::Task autoSwitch(on_center_button); // starts the thread to manage autonomous switiching
 	pros::Task intakeining(intakeControl); // starts the thread to manage intake control
 	pros::Task screen(screenUpdate); // starts the thread to manage screen inputs

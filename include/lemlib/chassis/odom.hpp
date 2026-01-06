@@ -4,6 +4,7 @@
 #include "lemlib/pose.hpp"
 
 extern int numOfResets;
+extern int acceptedMCLError;
 
 namespace lemlib {
 /**
