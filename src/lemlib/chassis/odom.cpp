@@ -250,7 +250,7 @@ void lemlib::update() {
     // Checks if the distance sensor readings are within a value that is consistantly accurate with all distance sensors
     if(mclLocal.verticalDistance1 != nullptr && (verticalDis1 < 35 || verticalDis2 < 35)){
         // Calculates the difference of the two distance sensors given we are getting valid readings
-        verticalOffsetTheoretical = predictVertical(radToDeg(imuRaw), verticalDis1, verticalDis2);
+        verticalOffsetTheoretical = predictVertical(radToDeg(odomPose.theta), verticalDis1, verticalDis2);
         // Checks if the calculated value is within half an inch of the actual reading to verify we are getting a valid reading
         if (abs(verticalOffsetTheoretical-((verticalDis1+mclLocal.vert1VerticalOffset)-(verticalDis2+mclLocal.vert2VerticalOffset)))<0.5){
             // Calculates the distance from the smalll of the two distance readings to the wall at the center of the robot
@@ -264,7 +264,7 @@ void lemlib::update() {
             } else {
                 centerToWall = scaledAddition + verticalDis2 + mclLocal.vert2VerticalOffset;
             }
-        float deg = radToDeg(imuRaw);
+        float deg = radToDeg(odomPose.theta);
         deg = fmod(deg, 360.0);
         if (deg < 0) deg += 360.0;
 
@@ -316,7 +316,7 @@ void lemlib::update() {
     
     // Checks if the distance sensor readings are within a value that is consistantly accurate with all distance sensors
     if(mclLocal.horizontalDistance1 != nullptr && (horizontalDis1 < 35 || horizontalDis2 < 35)){
-        horizontalOffsetTheoretical = predictHorizontal(radToDeg(imuRaw), horizontalDis1, horizontalDis2);
+        horizontalOffsetTheoretical = predictHorizontal(radToDeg(odomPose.theta), horizontalDis1, horizontalDis2);
         if (abs(horizontalOffsetTheoretical-((horizontalDis1+mclLocal.horiz1VerticalOffset)-(horizontalDis2+mclLocal.horiz2VerticalOffset)))<0.5){
             float x = abs((horizontalDis1+mclLocal.horiz1VerticalOffset)-(horizontalDis2+mclLocal.horiz2VerticalOffset))
                 *mclLocal.horiz1HorizontalOffset/(mclLocal.horiz1HorizontalOffset-mclLocal.horiz2HorizontalOffset);
@@ -325,7 +325,7 @@ void lemlib::update() {
             } else {
                 centerToWall = x + horizontalDis2 + mclLocal.horiz2VerticalOffset;
             }
-        float deg = radToDeg(imuRaw);
+        float deg = radToDeg(odomPose.theta);
         deg = fmod(deg, 360.0);
         if (deg < 0) deg += 360.0;
 
@@ -388,11 +388,11 @@ void lemlib::update() {
     odomPose.y += localY * cos(avgHeading);
     odomPose.y += localX * sin(avgHeading);
 
-    if(mclX != 1000000 && abs(odomPose.x-mclX)< 2){
+    if(mclX != 1000000 && abs(odomPose.x-mclX)< 5){
         odomPose.x = mclX;
         numOfResets += 1;
     }
-    if(mclY != 1000000 && abs(odomPose.y-mclY)< 2){
+    if(mclY != 1000000 && abs(odomPose.y-mclY)< 5){
         odomPose.y = mclY;
         numOfResets += 1;
     }

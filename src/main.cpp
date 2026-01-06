@@ -20,7 +20,7 @@ bool redTeam = true;
 bool isSkills = true;
 bool arcade = true;
 
-int code = 1;
+int code = 4;
 int numOfCodes = 5;
 
 // controller
@@ -103,7 +103,7 @@ lemlib::Drivetrain drivetrain(
 lemlib::ControllerSettings
     linearController(11,  // proportional gain (kP)
                      0,   // integral gain (kI)
-                     50,   // derivative gain (kD)
+                     55,   // derivative gain (kD)
                      3, // anti windup
                     1, // small error range, in inches
                                               100, // small error range timeout, in milliseconds
@@ -211,29 +211,27 @@ void intakeControl() {
             middle = false;
             upperSpeed += 127;
             intakeSpeed += 127;
-            directionSpeed += 127;
+            directionSpeed += 200;
             
         } 
         else if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_L2) || outtaking){
             middle = false;
             upperSpeed -= 127;
             intakeSpeed -= 50;
-            directionSpeed -=127;
+            directionSpeed -=200;
 
         } 
         else if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_R1) || middleGoal){
             middle = true;
             upperSpeed +=127;
             intakeSpeed +=127;
-            directionSpeed -=50;
+            directionSpeed -=70;
         } else {
             middle = false;
             upperSpeed = 0;
             intakeSpeed = 0;
             directionSpeed = 0;
         }
-
-
 
         // Code to stop color sort in case of emergency or misinput when starting the match
         if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_B) && cancelStatus == 1){
@@ -256,7 +254,7 @@ void intakeControl() {
         else intake_upper.brake();
         if (intakeSpeed != 0)intake.move(intakeSpeed);
         else intake.brake();
-        if (directionSpeed != 0)direction.move(directionSpeed);
+        if (directionSpeed != 0)direction.move_velocity(directionSpeed);
         else direction.brake();
         upperSpeed = 0;
         intakeSpeed = 0;

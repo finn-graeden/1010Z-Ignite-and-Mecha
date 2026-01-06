@@ -17,6 +17,7 @@
 #include "lemlib/pose.hpp"
 #include "lemlib-tarball/api.hpp" // IWYU pragma: keep
 #include "pros/motors.h"
+#include "pros/rtos.hpp"
 #include "squiggles.hpp"// IWYU pragma: keep
 
 //ASSET(skills_txt);
@@ -158,40 +159,57 @@ void redLeft(){
 
 // Solo Atonomous Win Point Code
 void redAWP(){
-    chassis.setPose({0, 0, -90});
-    descore.set_value(HIGH);
+    chassis.setPose({19.6, -47.8, 89});
+	hood.set_value(HIGH);
 	intaking = true;
-    chassis.moveToPoint(-4, 0, 1000);
-    chassis.moveToPoint(48, 0, 2000, {.forwards = false});
-    chassis.turnToHeading(-180, 700);
-    matchLoader.set_value(HIGH);
-    chassis.moveToPoint(48, -10.5, 1000);
-    pros::delay(1100);
-    chassis.moveToPoint(48, 26, 2000, {.forwards = false} );
-    pros::delay(600);
-    intaking=false;
-    scoring = true;
-    pros::delay(1400);
-    scoring = false;
-    intaking = true;
-    matchLoader.set_value(LOW);
-    chassis.moveToPoint(48, 0, 1000);
-    chassis.turnToPoint(0, 48, 700, {.minSpeed = 30});
-    chassis.moveToPoint(15, 31.5, 800, {}, false);
-    intaking = true;
-    chassis.moveToPoint(5, 24, 1000, {.forwards = false});
-    chassis.turnToHeading(-90, 700);
-    chassis.moveToPoint(-24, 24, 4000);
-    pros::delay(500);
-    matchLoader.set_value(HIGH);
-    chassis.turnToPoint(-48, 12, 300);
-    chassis.moveToPoint(-48, 12, 4000, {}, false);
-    matchLoader.set_value(LOW);
-    chassis.turnToHeading(180, 700);
-    chassis.moveToPoint(-48, 26, 800, {.forwards = false, .maxSpeed = 90}, false);
-    intaking = false;
-    scoring = true;
-    
+    chassis.moveToPoint(49.5, -48, 1000);
+	chassis.turnToHeading(180, 700);
+	matchLoader.set_value(HIGH);
+	chassis.moveToPoint(49, -62,1000, {}, false);
+	leftMotors.set_brake_mode(pros::MotorBrake::hold);
+	rightMotors.set_brake_mode(pros::MotorBrake::hold);
+	leftMotors.brake();
+	rightMotors.brake();
+	pros::delay(300);
+	hood.set_value(LOW);
+	chassis.moveToPoint(49, -26.5, 1000, {.forwards = false}, false);
+	matchLoader.set_value(LOW);
+	pros::delay(1300);
+	chassis.moveToPoint(48, -48, 1000);
+	chassis.moveToPoint(26, -26, 2000);
+	hood.set_value(HIGH);
+	chassis.waitUntil(26);
+	matchLoader.set_value(HIGH);
+	chassis.turnToPoint(-18, -24, 2000);
+	chassis.moveToPoint(-18, -24, 2000);
+	chassis.waitUntil(4);
+	matchLoader.set_value(LOW);
+	chassis.waitUntil(20);
+	matchLoader.set_value(HIGH);
+	chassis.moveToPoint(-9, -11, 1000, {.forwards = false}, false);
+	intaking = false;
+	outtaking = true;
+	pros::delay(400);
+	outtaking = false;
+	hood.set_value(HIGH);
+	isSkills = true;
+	intaking = true;
+	chassis.moveToPoint(-48, -48, 2000);
+	matchLoader.set_value(HIGH);
+	chassis.turnToHeading(180, 700);
+	chassis.moveToPoint(-48, -62, 1000, {}, false);
+	leftMotors.set_brake_mode(pros::MotorBrake::hold);
+	rightMotors.set_brake_mode(pros::MotorBrake::hold);
+	leftMotors.brake();
+	rightMotors.brake();
+	pros::delay(400);
+	chassis.moveToPoint(-48, -27, 1000, {.forwards = false}, false);
+	hood.set_value(LOW);
+	matchLoader.set_value(LOW);
+	pros::delay(1000);
+
+	
+
 
 
 }
