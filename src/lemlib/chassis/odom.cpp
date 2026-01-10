@@ -5,6 +5,7 @@
 
 #include <cmath>
 #include <math.h>
+#include "pros/misc.hpp"
 #include "pros/rtos.hpp"
 #include "lemlib/util.hpp"
 #include "lemlib/chassis/odom.hpp"
@@ -34,7 +35,7 @@ float prevImu = 0;
 
 int numOfResets = 0;
 
-int acceptedMCLError = 3;
+int acceptedMCLError = 5;
 
 // Defines drivetrains sensors for use with odometry locally
 void lemlib::setSensors(lemlib::OdomSensors sensors, lemlib::Drivetrain drivetrain) {
@@ -418,7 +419,8 @@ void lemlib::init() {
         trackingTask = new pros::Task {[=] {
             while (true) {
                 update();
-                pros::delay(10);
+                if (pros::competition::is_autonomous()) pros::delay(10);
+                else pros::delay(50);
             }
         }};
     }

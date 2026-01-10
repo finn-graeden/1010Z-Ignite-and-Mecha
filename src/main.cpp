@@ -5,6 +5,7 @@
 #include "lemlib/chassis/chassis.hpp"
 #include "lemlib/chassis/odom.hpp"
 #include "lemlib/chassis/trackingWheel.hpp"
+#include "lemlib/pid.hpp"
 #include "liblvgl/llemu.hpp"
 #include "pros/adi.h"
 #include "pros/adi.hpp"
@@ -17,10 +18,10 @@
 
 // Global Variables for controlling color sort and what code is run
 bool redTeam = true;
-bool isSkills = true;
+bool isSkills = false;
 bool arcade = true;
 
-int code = 4;
+int code = 1;
 int numOfCodes = 5;
 
 // controller
@@ -29,7 +30,7 @@ pros::Controller controller(pros::E_CONTROLLER_MASTER);
 
 // Left and Right drive smotor groups
 pros::MotorGroup
-    leftMotors({-1, -2, -3},
+    leftMotors({-1, -16, -3},
                pros::MotorGearset::blue); 
                                           
 pros::MotorGroup rightMotors(
@@ -187,11 +188,13 @@ void intakeControl() {
 
     descore.set_value(LOW);
 
-    while (1) {
-        
-        if(isSkills){
+    if(isSkills){
         cancel = true;
         } else cancel = false;
+
+    while (1) {
+        
+
 
 
         // Detects what color of ball is in the intake
@@ -221,11 +224,17 @@ void intakeControl() {
             directionSpeed -=200;
 
         } 
+        else if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_R1) || middleGoal && isSkills){
+            middle = true;
+            upperSpeed +=80;
+            intakeSpeed +=127;
+            directionSpeed -=40;
+        }
         else if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_R1) || middleGoal){
             middle = true;
-            upperSpeed +=127;
+            upperSpeed +=80;
             intakeSpeed +=127;
-            directionSpeed -=70;
+            directionSpeed -=40;
         } else {
             middle = false;
             upperSpeed = 0;
@@ -248,13 +257,14 @@ void intakeControl() {
 		if(!controller.get_digital(pros::E_CONTROLLER_DIGITAL_B) && cancelStatus == 4){
         	cancelStatus = 1;
     	}
-
+        if(intake_upper.get_efficiency()<30 && intake_upper.get_power()>0) upperSpeed = 1;
+        if(direction.get_efficiency()<30 && direction.get_power()>0) directionSpeed =1;
         // Run motors
         if (upperSpeed != 0)intake_upper.move(upperSpeed);
         else intake_upper.brake();
         if (intakeSpeed != 0)intake.move(intakeSpeed);
         else intake.brake();
-        if (directionSpeed != 0)direction.move_velocity(directionSpeed);
+        if (directionSpeed != 0)direction.move(directionSpeed);
         else direction.brake();
         upperSpeed = 0;
         intakeSpeed = 0;
@@ -303,18 +313,14 @@ void centerButton(){
 }
 
 // Controls what code runs based on limit switch presses
-void on_center_button() {
-    while(1){
-    //change to 0 to create auton roulette
-    if (pros::lcd::read_buttons()==001){
+void rightButton() {
         code ++;
-    }
+
 	
 	if (code > numOfCodes){
 		code = 1;
 	}
-    pros::delay(50);
-	}
+	
 }
 
 
@@ -325,6 +331,8 @@ void screenUpdate(){
         pros::lcd::set_text(4, "Y: " + std::to_string(chassis.getPose().y));
 	pros::lcd::set_text(5, "Theta: " + std::to_string(chassis.getPose().theta));
     pros::lcd::set_text(6, "Resets: " + std::to_string(numOfResets));
+    pros::lcd::set_text(7, "Direction Speed: "+ std::to_string(direction.get_efficiency()));
+    pros::lcd::set_text(0, std::to_string(direction.get_power()));
 	switch (code){
 		case 1:
 			pros::lcd::set_text(1, "Skills");
@@ -366,11 +374,11 @@ void initialize() {
     pros::lcd::initialize(); // initialize brain screen
     chassis.calibrate(); // calibrate sensors
     mcl.calibrate(); // clibrate distance sensors
-	pros::Task autoSwitch(on_center_button); // starts the thread to manage autonomous switiching
 	pros::Task intakeining(intakeControl); // starts the thread to manage intake control
 	pros::Task screen(screenUpdate); // starts the thread to manage screen inputs
     
     pros::lcd::register_btn1_cb(centerButton); // starts the thread to manage team color changes
+    pros::lcd::register_btn0_cb(rightButton);
     
 }
 
@@ -530,8 +538,7 @@ void opcontrol() {
 		if(!controller.get_digital(pros::E_CONTROLLER_DIGITAL_Y) && hoodStatus == 4){
         	hoodStatus = 1;
     	}
-
-    }
     // Delay to save resources for other tasks
-	pros::delay(20);
+	pros::delay(10);
+    }
 }
