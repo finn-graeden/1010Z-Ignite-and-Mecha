@@ -1,4 +1,5 @@
 // Imports other C files for use, especially with lemlib
+#include "scheduleing.hpp"
 #include "main.h"
 #include "autos.h"
 #include "lemlib/api.hpp" // IWYU pragma: keep
@@ -21,8 +22,8 @@ bool redTeam = true;
 bool isSkills = false;
 bool arcade = true;
 
-int code = 1;
-int numOfCodes = 5;
+int code = 5;
+int numOfCodes = 6;
 
 // controller
 pros::Controller controller(pros::E_CONTROLLER_MASTER);
@@ -171,6 +172,12 @@ int cancelStatus = 1;
 bool cancel = false;
 
 
+int loaderStatus = 1;
+int liftStatus = 1;
+int lifStatus = 1;
+int hoodStatus = 1;
+
+
 
 
 void intakeControl() {
@@ -234,7 +241,7 @@ void intakeControl() {
             middle = true;
             upperSpeed +=80;
             intakeSpeed +=127;
-            directionSpeed -=40;
+            directionSpeed -=127;
         } else {
             middle = false;
             upperSpeed = 0;
@@ -352,6 +359,9 @@ void screenUpdate(){
 		case 5:
 			pros::lcd::set_text(1, "Long Goal Only");
             break;
+        case 6:
+            pros::lcd::set_text(1, "Left Split");
+            break;
 			
             
 
@@ -419,28 +429,25 @@ void autonomous() {
 		case 5:
 			redRightLong();
 			break;
+        case 6:
+            leftSplit();
+            break;
     }
 }
 
-
-// Dirver Control Code
-void opcontrol() {
+void opControlInit(){
     if (code == 1)isSkills = true;
     scoring = false;
 	intaking = false;
 	outtaking = false;
     // loop to continuously update motors
 
-    if(code == 1){
-        wheelLift.set_value(HIGH);
-    }
+    wheelLift.set_value(HIGH);
     
-    int loaderStatus = 1;
-    int liftStatus = 1;
-    int lifStatus = 1;
-    int hoodStatus = 1;
-    while (true) {
-        float t = 0.1;  // can be changed
+
+}
+void opControlIteration(){
+    float t = 0.1;  // can be changed
     float tt = 0.1; // can be changed
 
     float SatValue = 0.1; // can be changed
@@ -510,6 +517,7 @@ void opcontrol() {
 
         // Controls the tracking wheel lift piston
         if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_UP) && lifStatus == 1){
+            controller.rumble("-");
         	wheelLift.set_value(HIGH);
         	lifStatus = 2;
     	}
@@ -517,6 +525,7 @@ void opcontrol() {
         	lifStatus = 3;
     	}
 		if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_UP) and lifStatus == 3){
+            controller.rumble(".");
         	wheelLift.set_value(LOW);
         	lifStatus = 4;
     	}
@@ -538,7 +547,11 @@ void opcontrol() {
 		if(!controller.get_digital(pros::E_CONTROLLER_DIGITAL_Y) && hoodStatus == 4){
         	hoodStatus = 1;
     	}
-    // Delay to save resources for other tasks
-	pros::delay(10);
-    }
+}
+// Dirver Control Code
+void opcontrol() {
+    scheduleTask()
+    
+    
+    
 }
