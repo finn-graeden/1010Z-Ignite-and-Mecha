@@ -78,8 +78,7 @@ pros::Distance right1(9);
 pros::Distance right2(21);
 
 
-lemlib::MCLSensors mcl(nullptr, nullptr, &right1, &right2, false, false, 0, 0, 0,
-     0, 2.25, -2.25, 3.5, 5.5);
+lemlib::MCLSensors mcl(nullptr, 0, 0, nullptr, 0, 0, nullptr, 0, 0, nullptr, 0, 0);
 
 
 // Horizontal Tracking wheel lemlib settings
