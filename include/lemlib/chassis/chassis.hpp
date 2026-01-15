@@ -167,24 +167,22 @@ class Drivetrain {
 
 class MCLSensors {
         public:
-        MCLSensors(pros::Distance* verticalDistance1, pros::Distance* verticalDistance2, pros::Distance* horizontalDistance1,
-                pros::Distance* horizontalDistance2, bool verticalForwards, bool horizontalRight, float vert1HorizontalOffset,
-                float vert2HorizontalOffset, float vert1VerticalOffset, float vert2VerticalOffset, float horiz1HorizontalOffset,
-                float horiz2HorizontalOffset, float horiz1VerticalOffset, float horiz2VerticalOffset);
-        bool verticalForwards; 
-        bool horizontalRight; 
-        float vert1HorizontalOffset;
-        float vert2HorizontalOffset; 
-        float vert1VerticalOffset; 
-        float vert2VerticalOffset; 
-        float horiz1HorizontalOffset;
-        float horiz2HorizontalOffset; 
-        float horiz1VerticalOffset; 
-        float horiz2VerticalOffset;
-        pros::Distance* verticalDistance1;
-        pros::Distance* verticalDistance2;
-        pros::Distance* horizontalDistance1;
-        pros::Distance* horizontalDistance2;
+        MCLSensors(pros::Distance* frontDistance, float frontLatOff, float frontVertOff,
+                pros::Distance* rightDistance, float rightLatOff, float rightVertOff,
+                pros::Distance* backDistance, float backLatOff, float backVertOff,
+                pros::Distance* leftDistance, float leftLatOff, float leftVertOff);
+        float frontLatOff;
+        float frontVertOff; 
+        float rightLatOff; 
+        float rightVertOff; 
+        float backLatOff;
+        float backVertOff; 
+        float leftLatOff; 
+        float leftVertOff;
+        pros::Distance* frontDistance;
+        pros::Distance* rightDistance;
+        pros::Distance* backDistance;
+        pros::Distance* leftDistance;
 
         void calibrate();
                 

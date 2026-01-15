@@ -14,7 +14,7 @@ namespace lemlib {
  * @param drivetrain drivetrain to be used
  */
 void setSensors(lemlib::OdomSensors sensors, lemlib::Drivetrain drivetrain);
-void setMCL(lemlib::MCLSensors* mclsensors);
+void setMCL(lemlib::MCLSensors mclsensors);
 
 /**
  * @brief Get the pose of the robot

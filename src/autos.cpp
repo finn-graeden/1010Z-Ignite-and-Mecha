@@ -7,7 +7,7 @@
 #include "lemlib/asset.hpp" // IWYU pragma: keep
 #include "lemlib/chassis/chassis.hpp"
 #include "math/quinticpolynomial.hpp"// IWYU pragma: keep
-#include "physicalmodel/physicalmodel.hpp"// IWYU pragma: keep
+#include "squiggles/physicalmodel/physicalmodel.hpp"// IWYU pragma: keep
 #include "pros/abstract_motor.hpp"
 #include "pros/adi.h"
 #include "pros/adi.hpp"
@@ -19,7 +19,7 @@
 #include "lemlib-tarball/api.hpp" // IWYU pragma: keep
 #include "pros/motors.h"
 #include "pros/rtos.hpp"
-#include "squiggles.hpp"// IWYU pragma: keep
+#include "squiggles/squiggles.hpp"// IWYU pragma: keep
 
 //ASSET(skills_txt);
 

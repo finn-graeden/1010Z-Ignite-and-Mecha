@@ -15,7 +15,7 @@
 #include "geometry/controlvector.hpp"
 #include "geometry/profilepoint.hpp"
 #include "math/quinticpolynomial.hpp"
-#include "physicalmodel/passthroughmodel.hpp"
+#include "squiggles/physicalmodel/passthroughmodel.hpp"
 #include "physicalmodel/physicalmodel.hpp"
 
 namespace squiggles {

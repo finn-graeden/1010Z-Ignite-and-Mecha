@@ -18,7 +18,7 @@ pros::Task* trackingTask = nullptr;
 // global variables
 lemlib::OdomSensors odomSensors(nullptr, nullptr, nullptr, nullptr, nullptr); // the sensors to be used for odometry
 lemlib::Drivetrain drive(nullptr, nullptr, 0, 0, 0, 0); // the drivetrain to be used for odometry
-lemlib::MCLSensors mclLocal(nullptr, nullptr, nullptr, nullptr, false, false, 0, 0, 0, 0, 0, 0, 0, 0);
+lemlib::MCLSensors mclLocal(nullptr, 0, 0, nullptr, 0, 0, nullptr, 0, 0, nullptr, 0, 0);
 lemlib::Pose odomPose(0, 0, 0); // the pose of the robot
 lemlib::Pose odomSpeed(0, 0, 0); // the speed of the robot
 lemlib::Pose odomLocalSpeed(0, 0, 0); // the local speed of the robot
@@ -44,27 +44,8 @@ void lemlib::setSensors(lemlib::OdomSensors sensors, lemlib::Drivetrain drivetra
 }
 
 // Defines distance sensors for use with distance reset locally
-void lemlib::setMCL(lemlib::MCLSensors* mclsensors){
-    // Distance sensors
-    mclLocal.verticalDistance1 = mclsensors->verticalDistance1;
-    mclLocal.verticalDistance2 = mclsensors->verticalDistance2;
-    mclLocal.horizontalDistance1 = mclsensors->horizontalDistance1;
-    mclLocal.horizontalDistance2 = mclsensors->horizontalDistance2;
-
-    // Booleans
-    mclLocal.verticalForwards = mclsensors->verticalForwards;
-    mclLocal.horizontalRight = mclsensors->horizontalRight;
-
-    // Offsets
-    mclLocal.vert1HorizontalOffset = mclsensors->vert1HorizontalOffset;
-    mclLocal.vert2HorizontalOffset = mclsensors->vert2HorizontalOffset;
-    mclLocal.vert1VerticalOffset   = mclsensors->vert1VerticalOffset;
-    mclLocal.vert2VerticalOffset   = mclsensors->vert2VerticalOffset;
-
-    mclLocal.horiz1HorizontalOffset = mclsensors->horiz1HorizontalOffset;
-    mclLocal.horiz2HorizontalOffset = mclsensors->horiz2HorizontalOffset;
-    mclLocal.horiz1VerticalOffset   = mclsensors->horiz1VerticalOffset;
-    mclLocal.horiz2VerticalOffset   = mclsensors->horiz2VerticalOffset;
+void lemlib::setMCL(lemlib::MCLSensors mclsensors){
+    mclLocal = mclsensors;
 }
 
 // Function to get the robot's position on feild
@@ -112,38 +93,52 @@ lemlib::Pose lemlib::estimatePose(float time, bool radians) {
     return futurePose;
 }
 
-// Function used in distance reset code to calculate the difference of the distance sensors if they are contacting the wall correctly
-float predictVertical(float theta, float rightDistance, float leftDistance){
-    theta = lemlib::sanitizeAngle(theta, false);
-    float a = fmod(theta, 360.0f);
-    if (a < 0) a += 360.0f;
+struct Point {
+    double x, y;
+};
 
-    // Nearest 90 degree multiple (0, 90, 180, 270, 360)
-    float nearest90 = round(a / 90.0f) * 90.0f;
-
-    // Distance from that angle (can be negative)
-    float diff = a - nearest90;
-
-    float distance = (tanf(lemlib::degToRad(diff)))*(mclLocal.vert1HorizontalOffset-mclLocal.vert2HorizontalOffset);
-    return distance;
+// 2D Cross product of vectors (A-C) and (B-C)
+double cross_product(Point a, Point b, Point c) {
+    return (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x);
 }
 
-// Function used in distance reset code to calculate the difference of the distance sensors if they are contacting the wall correctly
-float predictHorizontal(float theta, float rightDistance, float leftDistance){
-    theta = lemlib::sanitizeAngle(theta, false);
-    float a = fmod(theta, 360.0f);
-    if (a < 0) a += 360.0f;
+// Function to find the intersection point of a ray (P + t*R) and a line segment (Q + u*S)
+// Ray origin P, Ray direction R (normalized or not)
+// Segment endpoints Q and E, vector S = E-Q
+bool raySegmentIntersection(Point p, Point r_dir, Point q, Point e, Point& intersection) {
+    Point s_dir = {e.x - q.x, e.y - q.y}; // Segment direction vector
+    Point q_minus_p = {q.x - p.x, q.y - p.y}; // Vector from ray origin to segment start
 
-    // Nearest 90 degree multiple (0, 90, 180, 270, 360)
-    float nearest90 = round(a / 90.0f) * 90.0f;
+    // Denominator for t and u (cross product of direction vectors)
+    double denominator = r_dir.x * s_dir.y - r_dir.y * s_dir.x;
 
-    // Distance from that angle (can be negative)
-    float diff = a - nearest90;
+    // Check if lines are parallel (denominator is close to zero)
+    if (std::abs(denominator) < 1e-9) {
+        // Lines are parallel. May be collinear and overlapping, or just parallel.
+        // For this simple case, we assume no intersection to avoid complex collinear checks.
+        return false;
+    }
 
-    float distance = (tanf(lemlib::degToRad(diff)))*(mclLocal.horiz1HorizontalOffset-mclLocal.horiz2HorizontalOffset);
+    // Solve for parameters t (ray) and u (segment) using Cramer's rule or similar
+    double t = (q_minus_p.x * s_dir.y - q_minus_p.y * s_dir.x) / denominator;
+    double u = (q_minus_p.x * r_dir.y - q_minus_p.y * r_dir.x) / denominator;
 
+    // Check if the intersection point falls within the constraints:
+    // t >= 0 for the ray (starts at origin and goes infinitely in one direction)
+    // 0 <= u <= 1 for the line segment (between endpoints)
+    if (t >= 0.0 && u >= 0.0 && u <= 1.0) {
+        // Intersection found
+        intersection.x = p.x + t * r_dir.x;
+        intersection.y = p.y + t * r_dir.y;
+        return true;
+    }
 
-    return distance;
+    // No intersection within the valid ranges
+    return false;
+}
+
+Point pointAtDistance(Point startPoint, float distance, float heading){
+    return Point{startPoint.x+(sinf(heading)*distance), startPoint.y+(cosf(heading)*distance)};
 }
 
 // Function that updates the position of the robot constantly
@@ -155,10 +150,10 @@ void lemlib::update() {
     float horizontal1Raw = 0;
     float horizontal2Raw = 0;
     float imuRaw = 0;
-    float verticalDis1 = 0;
-    float verticalDis2 = 0;
-    float horizontalDis1 = 0;
-    float horizontalDis2 = 0;
+    float frontDis = 0;
+    float rightDis = 0;
+    float backDis = 0;
+    float leftDis = 0;
     float verticalOffsetTheoretical = 0;
     float horizontalOffsetTheoretical = 0;
     float mclX = 100000;
@@ -168,10 +163,10 @@ void lemlib::update() {
     if (odomSensors.horizontal1 != nullptr) horizontal1Raw = odomSensors.horizontal1->getDistanceTraveled();
     if (odomSensors.horizontal2 != nullptr) horizontal2Raw = odomSensors.horizontal2->getDistanceTraveled();
     if (odomSensors.imu != nullptr) imuRaw = degToRad(odomSensors.imu->get_rotation());
-    if (mclLocal.verticalDistance1 != nullptr) verticalDis1 = mclLocal.verticalDistance1->get_distance()/25.4;
-    if (mclLocal.verticalDistance2 != nullptr) verticalDis2 = mclLocal.verticalDistance2->get_distance()/25.4;
-    if (mclLocal.horizontalDistance1 != nullptr) horizontalDis1 = mclLocal.horizontalDistance1->get_distance()/25.4;
-    if (mclLocal.horizontalDistance2 != nullptr) horizontalDis2 = mclLocal.horizontalDistance2->get_distance()/25.4;
+    if (mclLocal.frontDistance != nullptr) frontDis = mclLocal.frontDistance->get_distance()/25.4;
+    if (mclLocal.rightDistance != nullptr) rightDis = mclLocal.rightDistance->get_distance()/25.4;
+    if (mclLocal.backDistance != nullptr) backDis = mclLocal.backDistance->get_distance()/25.4;
+    if (mclLocal.leftDistance != nullptr) leftDis = mclLocal.leftDistance->get_distance()/25.4;
 
     // calculate the change in sensor values
     float deltaVertical1 = vertical1Raw - prevVertical1;
@@ -249,137 +244,119 @@ void lemlib::update() {
     }
 
     // START OF CONSTANT DISTANCE RESET CODE
-
-    // Checks if the distance sensor readings are within a value that is consistantly accurate with all distance sensors
-    if(mclLocal.verticalDistance1 != nullptr && (verticalDis1 < 35 || verticalDis2 < 35)){
-        // Calculates the difference of the two distance sensors given we are getting valid readings
-        verticalOffsetTheoretical = predictVertical(radToDeg(odomPose.theta), verticalDis1, verticalDis2);
-        // Checks if the calculated value is within half an inch of the actual reading to verify we are getting a valid reading
-        if (abs(verticalOffsetTheoretical-((verticalDis1+mclLocal.vert1VerticalOffset)-(verticalDis2+mclLocal.vert2VerticalOffset)))<0.5){
-            // Calculates the distance from the smalll of the two distance readings to the wall at the center of the robot
-
-            // NOTE: NEED TO FIX IF OPPOSITE SIDE THIS MIGHT BE OFF
-            float scaledAddition = abs((verticalDis1+mclLocal.vert1VerticalOffset)-(verticalDis2+mclLocal.vert2VerticalOffset))
-                *mclLocal.vert1HorizontalOffset/(mclLocal.vert1HorizontalOffset-mclLocal.vert2HorizontalOffset);
-            // Computes total distance 
-            if(verticalDis1+mclLocal.vert1VerticalOffset< verticalDis2+mclLocal.vert2VerticalOffset){
-                centerToWall = scaledAddition + verticalDis1 + mclLocal.vert1VerticalOffset;
-            } else {
-                centerToWall = scaledAddition + verticalDis2 + mclLocal.vert2VerticalOffset;
-            }
-        float deg = radToDeg(odomPose.theta);
-        deg = fmod(deg, 360.0);
-        if (deg < 0) deg += 360.0;
-
-        // Compute nearest multiple of 90
-        int nearest = static_cast<int>(std::round(deg / 90.0)) * 90;
-
-        float sanitized = lemlib::sanitizeAngle(deg, false);
-
-        float diff = sanitized - nearest;
-
-        centerToWall = abs(cosf(lemlib::degToRad(diff)))*centerToWall;
-
-        // Wrap 360 back to 0
-        if (nearest == 360) nearest = 0;
-
-
-        switch (nearest){
-            case 0:
-                if (mclLocal.verticalForwards){
-                    mclY = 71.5 - centerToWall;
-                } else {
-                    mclY = -71.5 + centerToWall;
-                }
-                break;
-            case 90:
-                if (mclLocal.verticalForwards){
-                    mclX = 71.5 - centerToWall;
-                } else {
-                    mclX = -71.5 + centerToWall;
-                }
-                break;
-            case 180:
-                if (mclLocal.verticalForwards){
-                    mclY = -71.5 + centerToWall;
-                } else {
-                    mclY = 71.5 - centerToWall;
-                }
-                break;
-            case 270:
-                if (mclLocal.verticalForwards){
-                    mclX = -71.5 + centerToWall;
-                } else {
-                    mclX = 71.5 - centerToWall;
-                }
-                break;
-        }
-        }
-    }
     
-    // Checks if the distance sensor readings are within a value that is consistantly accurate with all distance sensors
-    if(mclLocal.horizontalDistance1 != nullptr && (horizontalDis1 < 35 || horizontalDis2 < 35)){
-        horizontalOffsetTheoretical = predictHorizontal(radToDeg(odomPose.theta), horizontalDis1, horizontalDis2);
-        if (abs(horizontalOffsetTheoretical-((horizontalDis1+mclLocal.horiz1VerticalOffset)-(horizontalDis2+mclLocal.horiz2VerticalOffset)))<0.5){
-            float x = abs((horizontalDis1+mclLocal.horiz1VerticalOffset)-(horizontalDis2+mclLocal.horiz2VerticalOffset))
-                *mclLocal.horiz1HorizontalOffset/(mclLocal.horiz1HorizontalOffset-mclLocal.horiz2HorizontalOffset);
-            if(horizontalDis1+mclLocal.horiz1VerticalOffset< horizontalDis2+mclLocal.horiz2VerticalOffset){
-                centerToWall = x + horizontalDis1 + mclLocal.horiz1VerticalOffset;
-            } else {
-                centerToWall = x + horizontalDis2 + mclLocal.horiz2VerticalOffset;
+    // Front distance sesnor (if available)
+    if (mclLocal.frontDistance != nullptr && frontDis < 70){
+        Point sensor = pointAtDistance({odomPose.x, odomPose.y}, sqrtf(powf(mclLocal.frontLatOff, 2)+powf(mclLocal.frontVertOff, 2)), odomPose.theta);
+        Point intersection;
+        if(raySegmentIntersection({sensor.x, sensor.y}, pointAtDistance(sensor, 1, odomPose.theta), {-70.2, 70.2}, {70.2, 70.2}, intersection)){
+            if ((intersection.x<41.8&&intersection.x>51.8)&&(intersection.x>-41.8&&intersection.x<-51.8)){
+                centerToWall = (frontDis + mclLocal.frontVertOff) - (tanf(odomPose.theta)*mclLocal.frontLatOff);
+                mclY = 70.2-centerToWall;
             }
-        float deg = radToDeg(odomPose.theta);
-        deg = fmod(deg, 360.0);
-        if (deg < 0) deg += 360.0;
-
-        // Compute nearest multiple of 90
-        int nearest = static_cast<int>(std::round(deg / 90.0)) * 90;
-
-        float sanitized = lemlib::sanitizeAngle(deg, false);
-
-        float diff = sanitized - nearest;
-
-        centerToWall = abs(cosf(lemlib::degToRad(diff)))*centerToWall;
-
-        // Wrap 360 back to 0
-        if (nearest == 360) nearest = 0;
-
-
-        switch (nearest){
-            case 0:
-                if (mclLocal.horizontalRight){
-                    mclX = 71.2 - centerToWall;
-                } else {
-                    mclX = -71.2 + centerToWall;
-                }
-                break;
-            case 90:
-                if (mclLocal.horizontalRight){
-                    mclY = -71.2 + centerToWall;
-                } else {
-                    mclY = 71.2 - centerToWall;
-                }
-                break;
-            case 180:
-                if (mclLocal.horizontalRight){
-                    mclX = -71.2 + centerToWall;
-                } else {
-                    mclX = 71.2 - centerToWall;
-                }
-                break;
-            case 270:
-                if (mclLocal.horizontalRight){
-                    mclY = 71.2 - centerToWall;
-                } else {
-                    mclY = -71.2 + centerToWall;
-                }
-                break;
+        } else if (raySegmentIntersection({sensor.x, sensor.y}, pointAtDistance(sensor, 1, odomPose.theta), {-70.2, 70.2}, {-70.2, -70.2}, intersection)){
+            if (1){
+                centerToWall = (frontDis + mclLocal.frontVertOff) - (tanf(odomPose.theta)*mclLocal.frontLatOff);
+                mclX = 70.2-centerToWall;
+            }
+        } else if(raySegmentIntersection({sensor.x, sensor.y}, pointAtDistance(sensor, 1, odomPose.theta), {-70.2, 70.2}, {-70.2, 70.2}, intersection)){
+            if ((intersection.x<41.8&&intersection.x>51.8)&&(intersection.x>-41.8&&intersection.x<-51.8)){
+                centerToWall = (frontDis + mclLocal.frontVertOff) - (tanf(odomPose.theta)*mclLocal.frontLatOff);
+                mclY = -70.2+centerToWall;
+            }
+        }else {
+            if (1){
+                centerToWall = (frontDis + mclLocal.frontVertOff) - (tanf(odomPose.theta)*mclLocal.frontLatOff);
+                mclX = 70.2-centerToWall;
             }
         }
+
     }
 
-    // END CONSTANT DISTANCE RESET CODE 
+    // Right distance sesnor (if available)
+    if (mclLocal.rightDistance != nullptr && rightDis < 70){
+        Point sensor = pointAtDistance({odomPose.x, odomPose.y}, sqrtf(powf(mclLocal.rightLatOff, 2)+powf(mclLocal.rightVertOff, 2)), odomPose.theta);
+        Point intersection;
+        if(raySegmentIntersection({sensor.x, sensor.y}, pointAtDistance(sensor, 1, odomPose.theta), {-70.2, 70.2}, {70.2, 70.2}, intersection)){
+            if ((intersection.x<41.8&&intersection.x>51.8)&&(intersection.x>-41.8&&intersection.x<-51.8)){
+                centerToWall = (rightDis + mclLocal.rightVertOff) - (tanf(odomPose.theta)*mclLocal.rightLatOff);
+                mclY = 70.2-centerToWall;
+            }
+        } else if (raySegmentIntersection({sensor.x, sensor.y}, pointAtDistance(sensor, 1, odomPose.theta), {-70.2, 70.2}, {-70.2, -70.2}, intersection)){
+            if (1){
+                centerToWall = (rightDis + mclLocal.rightVertOff) - (tanf(odomPose.theta)*mclLocal.rightLatOff);
+                mclX = 70.2-centerToWall;
+            }
+        } else if(raySegmentIntersection({sensor.x, sensor.y}, pointAtDistance(sensor, 1, odomPose.theta), {-70.2, 70.2}, {-70.2, 70.2}, intersection)){
+            if ((intersection.x<41.8&&intersection.x>51.8)&&(intersection.x>-41.8&&intersection.x<-51.8)){
+                centerToWall = (rightDis + mclLocal.rightVertOff) - (tanf(odomPose.theta)*mclLocal.rightLatOff);
+                mclY = -70.2+centerToWall;
+            }
+        }else {
+            if (1){
+                centerToWall = (rightDis + mclLocal.rightVertOff) - (tanf(odomPose.theta)*mclLocal.rightLatOff);
+                mclX = 70.2-centerToWall;
+            }
+        }
 
+    }
+
+    // Back distance sesnor (if available)
+    if (mclLocal.backDistance != nullptr && backDis < 70){
+        Point sensor = pointAtDistance({odomPose.x, odomPose.y}, sqrtf(powf(mclLocal.backLatOff, 2)+powf(mclLocal.backVertOff, 2)), odomPose.theta);
+        Point intersection;
+        if(raySegmentIntersection({sensor.x, sensor.y}, pointAtDistance(sensor, 1, odomPose.theta), {-70.2, 70.2}, {70.2, 70.2}, intersection)){
+            if ((intersection.x<41.8&&intersection.x>51.8)&&(intersection.x>-41.8&&intersection.x<-51.8)){
+                centerToWall = (backDis + mclLocal.backVertOff) - (tanf(odomPose.theta)*mclLocal.backLatOff);
+                mclY = 70.2-centerToWall;
+            }
+        } else if (raySegmentIntersection({sensor.x, sensor.y}, pointAtDistance(sensor, 1, odomPose.theta), {-70.2, 70.2}, {-70.2, -70.2}, intersection)){
+            if (1){
+                centerToWall = (backDis + mclLocal.backVertOff) - (tanf(odomPose.theta)*mclLocal.backLatOff);
+                mclX = 70.2-centerToWall;
+            }
+        } else if(raySegmentIntersection({sensor.x, sensor.y}, pointAtDistance(sensor, 1, odomPose.theta), {-70.2, 70.2}, {-70.2, 70.2}, intersection)){
+            if ((intersection.x<41.8&&intersection.x>51.8)&&(intersection.x>-41.8&&intersection.x<-51.8)){
+                centerToWall = (backDis + mclLocal.backVertOff) - (tanf(odomPose.theta)*mclLocal.backLatOff);
+                mclY = -70.2+centerToWall;
+            }
+        }else {
+            if (1){
+                centerToWall = (backDis + mclLocal.backVertOff) - (tanf(odomPose.theta)*mclLocal.backLatOff);
+                mclX = 70.2-centerToWall;
+            }
+        }
+
+    }
+
+    // Left distance sesnor (if available)
+    if (mclLocal.leftDistance != nullptr && leftDis < 70){
+        Point sensor = pointAtDistance({odomPose.x, odomPose.y}, sqrtf(powf(mclLocal.leftLatOff, 2)+powf(mclLocal.leftVertOff, 2)), odomPose.theta);
+        Point intersection;
+        if(raySegmentIntersection({sensor.x, sensor.y}, pointAtDistance(sensor, 1, odomPose.theta), {-70.2, 70.2}, {70.2, 70.2}, intersection)){
+            if ((intersection.x<41.8&&intersection.x>51.8)&&(intersection.x>-41.8&&intersection.x<-51.8)){
+                centerToWall = (leftDis + mclLocal.leftVertOff) - (tanf(odomPose.theta)*mclLocal.leftLatOff);
+                mclY = 70.2-centerToWall;
+            }
+        } else if (raySegmentIntersection({sensor.x, sensor.y}, pointAtDistance(sensor, 1, odomPose.theta), {-70.2, 70.2}, {-70.2, -70.2}, intersection)){
+            if (1){
+                centerToWall = (leftDis + mclLocal.leftVertOff) - (tanf(odomPose.theta)*mclLocal.leftLatOff);
+                mclX = 70.2-centerToWall;
+            }
+        } else if(raySegmentIntersection({sensor.x, sensor.y}, pointAtDistance(sensor, 1, odomPose.theta), {-70.2, 70.2}, {-70.2, 70.2}, intersection)){
+            if ((intersection.x<41.8&&intersection.x>51.8)&&(intersection.x>-41.8&&intersection.x<-51.8)){
+                centerToWall = (leftDis + mclLocal.leftVertOff) - (tanf(odomPose.theta)*mclLocal.leftLatOff);
+                mclY = -70.2+centerToWall;
+            }
+        }else {
+            if (1){
+                centerToWall = (leftDis + mclLocal.leftVertOff) - (tanf(odomPose.theta)*mclLocal.leftLatOff);
+                mclX = 70.2-centerToWall;
+            }
+        }
+
+    }
+    // END DISTANCE RESET CODE
 
     // save previous pose
     prevPose = odomPose;
