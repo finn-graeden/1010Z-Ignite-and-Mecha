@@ -1,12 +1,12 @@
-#include "geometry/controlvector.hpp"// IWYU pragma: keep
-#include "geometry/pose.hpp"
+#include "squiggles/geometry/controlvector.hpp"// IWYU pragma: keep
+#include "squiggles/geometry/pose.hpp"
 #include "lemlib/chassis/odom.hpp"
 #include "lemlib/timer.hpp"
 #include "main.h"
 #include "lemlib/api.hpp" // IWYU pragma: keep
 #include "lemlib/asset.hpp" // IWYU pragma: keep
 #include "lemlib/chassis/chassis.hpp"
-#include "math/quinticpolynomial.hpp"// IWYU pragma: keep
+#include "squiggles/math/quinticpolynomial.hpp"// IWYU pragma: keep
 #include "squiggles/physicalmodel/physicalmodel.hpp"// IWYU pragma: keep
 #include "pros/abstract_motor.hpp"
 #include "pros/adi.h"

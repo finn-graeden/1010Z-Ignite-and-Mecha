@@ -1,6 +1,6 @@
 #pragma once
 
-#include "geometry/pose.hpp"
+#include "squiggles/geometry/pose.hpp"
 #include "pros/distance.hpp"
 #include "pros/rtos.hpp"
 #include "pros/imu.hpp"
