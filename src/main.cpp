@@ -372,7 +372,7 @@ void initialize() {
 	color.set_led_pwm(100);
     pros::lcd::initialize(); // initialize brain screen
     chassis.calibrate(); // calibrate sensors
-    mcl.calibrate(); // clibrate distance sensors
+    mcl.calibrate(mcl); // clibrate distance sensors
 	pros::Task intakeining(intakeControl); // starts the thread to manage intake control
 	pros::Task screen(screenUpdate); // starts the thread to manage screen inputs
     

@@ -1,7 +1,7 @@
 #include "api.h"
-#include "geometry/profilepoint.hpp"
-#include "spline.hpp"
-#include "squiggles.hpp"
+#include "squiggles/geometry/profilepoint.hpp"
+#include "squiggles/spline.hpp"
+#include "squiggles/squiggles.hpp"
 #include "lemlib/chassis/chassis.hpp"
 #include "lemlib/timer.hpp"
 #include <cmath>

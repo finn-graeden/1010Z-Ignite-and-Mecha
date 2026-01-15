@@ -184,7 +184,8 @@ class MCLSensors {
         pros::Distance* backDistance;
         pros::Distance* leftDistance;
 
-        void calibrate();
+        void calibrate(lemlib::MCLSensors& mclsensors);
+
                 
 };
 
@@ -956,6 +957,7 @@ class Chassis {
         ControllerSettings angularSettings;
         Drivetrain drivetrain;
         OdomSensors sensors;
+        MCLSensors* mclsensors;
         DriveCurve* throttleCurve;
         DriveCurve* steerCurve;
 

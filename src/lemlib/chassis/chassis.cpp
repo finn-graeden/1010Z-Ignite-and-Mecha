@@ -42,15 +42,14 @@ lemlib::Chassis::Chassis(Drivetrain drivetrain, ControllerSettings linearSetting
       angularLargeExit(angularSettings.largeError, angularSettings.largeErrorTimeout),
       angularSmallExit(angularSettings.smallError, angularSettings.smallErrorTimeout) {}
 
-lemlib::MCLSensors::MCLSensors(pros::Distance* verticalDistance1, pros::Distance* verticalDistance2, pros::Distance* horizontalDistance1,
-                pros::Distance* horizontalDistance2, bool verticalForwards, bool horizontalRight, float vert1HorizontalOffset,
-                float vert2HorizontalOffset, float vert1VerticalOffset, float vert2VerticalOffset, float horiz1HorizontalOffset,
-                float horiz2HorizontalOffset, float horiz1VerticalOffset, float horiz2VerticalOffset): 
-                verticalDistance1(verticalDistance1), verticalDistance2(verticalDistance2), horizontalDistance1(horizontalDistance1),
-                horizontalDistance2(horizontalDistance2), verticalForwards(verticalForwards), horizontalRight(horizontalRight), 
-                vert1HorizontalOffset(vert1HorizontalOffset), vert2HorizontalOffset(vert2HorizontalOffset), vert1VerticalOffset(vert1VerticalOffset),
-                vert2VerticalOffset(vert2VerticalOffset), horiz1HorizontalOffset(horiz1HorizontalOffset), horiz2HorizontalOffset(horiz2HorizontalOffset),
-                horiz1VerticalOffset(horiz1VerticalOffset), horiz2VerticalOffset(horiz2VerticalOffset){}
+lemlib::MCLSensors::MCLSensors(pros::Distance* frontDistance, float frontLatOff, float frontVertOff,
+                pros::Distance* rightDistance, float rightLatOff, float rightVertOff,
+                pros::Distance* backDistance, float backLatOff, float backVertOff,
+                pros::Distance* leftDistance, float leftLatOff, float leftVertOff): 
+                frontDistance(frontDistance), frontLatOff(frontLatOff), frontVertOff(frontVertOff),
+                rightDistance(rightDistance), rightLatOff(rightLatOff), rightVertOff(rightVertOff), 
+                backDistance(backDistance), backLatOff(backLatOff), backVertOff(backVertOff),
+                leftDistance(leftDistance), leftLatOff(leftLatOff), leftVertOff(leftVertOff) {}
 
 /**
  * @brief calibrate the IMU given a sensors struct
@@ -104,8 +103,8 @@ void lemlib::Chassis::calibrate(bool calibrateImu) {
     pros::c::controller_rumble(pros::E_CONTROLLER_MASTER, ".");
 }
 
-void lemlib::MCLSensors::calibrate(){
-        lemlib::setMCL(this);
+void lemlib::MCLSensors::calibrate(lemlib::MCLSensors& mclsensors){
+        lemlib::setMCL(mclsensors);
 }
 
 void lemlib::Chassis::setPose(float x, float y, float theta, bool radians) {
