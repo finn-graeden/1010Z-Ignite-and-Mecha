@@ -21,7 +21,7 @@ bool redTeam = true;
 bool isSkills = false;
 bool arcade = true;
 
-int code = 1;
+int code = 2;
 int numOfCodes = 5;
 
 // controller
@@ -30,11 +30,11 @@ pros::Controller controller(pros::E_CONTROLLER_MASTER);
 
 // Left and Right drive smotor groups
 pros::MotorGroup
-    leftMotors({-1, -16, -3},
+    leftMotors({-8, -9, -12},
                pros::MotorGearset::blue); 
                                           
 pros::MotorGroup rightMotors(
-    {4, 5, 6},
+    {18, 19, 20},
     pros::MotorGearset::blue); 
 
 
@@ -42,50 +42,51 @@ pros::MotorGroup rightMotors(
 pros::Imu imu(11);
 
 // Limit switch for changing code
-pros::adi::DigitalIn limitSwitch('b');
+pros::adi::DigitalIn limitSwitch('o');
 
 // Optical sensor for color sosrt
 pros::Optical color(7);
 
 
 // Matchloader piston
-pros::adi::DigitalOut matchLoader('a');
+pros::adi::DigitalOut matchLoader('b');
 
 // Tracking Wheel lift piston
-pros::adi::DigitalOut wheelLift('d');
+pros::adi::DigitalOut wheelLift('m');
 
 // Goal Descore piston
-pros::adi::DigitalOut descore('g');
+pros::adi::DigitalOut descore('a');
 
-pros::adi::DigitalOut hood('h');
+pros::adi::DigitalOut hood('c');
+
+pros::adi::DigitalOut middleScore('d');
 
 // Intake motors
-pros::Motor intake(-12, pros::MotorGearset::blue);
-pros::Motor intake_upper(-13, pros::MotorGearset::green);
-pros::Motor direction(8, pros::v5::MotorGears::blue);
+pros::Motor intake(-14, pros::MotorGearset::blue);
+pros::Motor intake_upper(-15, pros::MotorGearset::blue);
 
 // Horizontal tracking wheel
-pros::Rotation horizontalEnc(-14);
+pros::Rotation horizontalEnc(-16);
 
 // vertical tracking wheel 
-pros::Rotation verticalEnc(-15);
+pros::Rotation verticalEnc(13);
 
 
 // Distance sensors for a simplified version of Monte Carlo Localization
-pros::Distance back1(1);
-pros::Distance back2(2);
-pros::Distance right1(9);
-pros::Distance right2(21);
+pros::Distance frontDistance(21);
+pros::Distance rightDistance(17);
+pros::Distance backDistance(7);
+pros::Distance leftDistance(3);
 
 
-lemlib::MCLSensors mcl(nullptr, 0, 0, nullptr, 0, 0, nullptr, 0, 0, nullptr, 0, 0);
+lemlib::MCLSensors mcl(&frontDistance, 3.25, 6, &rightDistance, -0.75, 4.75, &backDistance, -5.125, 2.625, &leftDistance, 0.75, 4.75);
 
 
 // Horizontal Tracking wheel lemlib settings
 lemlib::TrackingWheel horizontal(&horizontalEnc, 2, 1);
 
 // Vertical tracking wheel lemlib settings
-lemlib::TrackingWheel vertical(&verticalEnc, 2, 0.5);
+lemlib::TrackingWheel vertical(&verticalEnc, 2, 1.18);
 
 
 // drivetrain settings
@@ -179,10 +180,8 @@ void intakeControl() {
     bool middle = false;
     float upperSpeed = 0;
     float intakeSpeed = 0;
-    float directionSpeed = 0;
     intake.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
     intake_upper.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
-    direction.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
     
 
     descore.set_value(LOW);
@@ -213,32 +212,22 @@ void intakeControl() {
             middle = false;
             upperSpeed += 127;
             intakeSpeed += 127;
-            directionSpeed += 200;
             
         } 
         else if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_L2) || outtaking){
             middle = false;
             upperSpeed -= 127;
-            intakeSpeed -= 50;
-            directionSpeed -=200;
+            intakeSpeed -= 127;
 
         } 
-        else if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_R1) || middleGoal && isSkills){
+        else if ((controller.get_digital(pros::E_CONTROLLER_DIGITAL_R1 )&&isSkills) || (middleGoal && isSkills)){
             middle = true;
-            upperSpeed +=80;
+            upperSpeed +=50;
             intakeSpeed +=127;
-            directionSpeed -=40;
-        }
-        else if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_R1) || middleGoal){
-            middle = true;
-            upperSpeed +=80;
-            intakeSpeed +=127;
-            directionSpeed -=40;
         } else {
             middle = false;
             upperSpeed = 0;
             intakeSpeed = 0;
-            directionSpeed = 0;
         }
 
         // Code to stop color sort in case of emergency or misinput when starting the match
@@ -257,23 +246,19 @@ void intakeControl() {
         	cancelStatus = 1;
     	}
         if(intake_upper.get_efficiency()<30 && intake_upper.get_power()>0) upperSpeed = 1;
-        if(direction.get_efficiency()<30 && direction.get_power()>0) directionSpeed =1;
         // Run motors
         if (upperSpeed != 0)intake_upper.move(upperSpeed);
         else intake_upper.brake();
         if (intakeSpeed != 0)intake.move(intakeSpeed);
         else intake.brake();
-        if (directionSpeed != 0)direction.move(directionSpeed);
-        else direction.brake();
         upperSpeed = 0;
         intakeSpeed = 0;
-        directionSpeed = 0;
 
         // Delay to save resourses for other tasks
         pros::delay(10);
         
         // Color sort
-        
+        /*
         if(!isSkills && !cancel){
             if((redTeam && blueBall) || (!redTeam && redBall)){
                 if(!middle){
@@ -294,7 +279,9 @@ void intakeControl() {
                     intake_upper.brake();
                 }
             }
+                
         }
+            */
 
         
 
@@ -330,8 +317,6 @@ void screenUpdate(){
         pros::lcd::set_text(4, "Y: " + std::to_string(chassis.getPose().y));
 	pros::lcd::set_text(5, "Theta: " + std::to_string(chassis.getPose().theta));
     pros::lcd::set_text(6, "Resets: " + std::to_string(numOfResets));
-    pros::lcd::set_text(7, "Direction Speed: "+ std::to_string(direction.get_efficiency()));
-    pros::lcd::set_text(0, std::to_string(direction.get_power()));
 	switch (code){
 		case 1:
 			pros::lcd::set_text(1, "Skills");
@@ -428,6 +413,7 @@ void opcontrol() {
     scoring = false;
 	intaking = false;
 	outtaking = false;
+    bool descoreLastCycle = false;
     // loop to continuously update motors
 
     if(code == 1){
@@ -438,6 +424,7 @@ void opcontrol() {
     int liftStatus = 1;
     int lifStatus = 1;
     int hoodStatus = 1;
+    int middleStatus = 1;
     while (true) {
         float t = 0.1;  // can be changed
     float tt = 0.1; // can be changed
@@ -489,21 +476,13 @@ void opcontrol() {
     	}
 
 
-        // Controls the descore piston
-        if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_RIGHT) && liftStatus == 1){
-        	descore.set_value(HIGH);
-        	liftStatus = 2;
-    	}
-		if (!controller.get_digital(pros::E_CONTROLLER_DIGITAL_RIGHT) && liftStatus == 2){
-        	liftStatus = 3;
-    	}
-		if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_RIGHT) and liftStatus == 3){
-        	descore.set_value(LOW);
-        	liftStatus = 4;
-    	}
-		if(!controller.get_digital(pros::E_CONTROLLER_DIGITAL_RIGHT) && liftStatus == 4){
-        	liftStatus = 1;
-    	}
+        if(!controller.get_digital(pros::E_CONTROLLER_DIGITAL_RIGHT) && !descoreLastCycle){
+            descore.set_value(HIGH);
+            descoreLastCycle = true;
+        } else if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_RIGHT) && descoreLastCycle){
+            descore.set_value(LOW);
+            descoreLastCycle = false;
+        }
 
 
 
@@ -537,6 +516,26 @@ void opcontrol() {
 		if(!controller.get_digital(pros::E_CONTROLLER_DIGITAL_Y) && hoodStatus == 4){
         	hoodStatus = 1;
     	}
+
+
+        // Controls the intake middle switch piston
+        if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_R1) && middleStatus == 1){
+        	middleScore.set_value(HIGH);
+        	middleStatus = 2;
+    	}
+		if (!controller.get_digital(pros::E_CONTROLLER_DIGITAL_R1) && middleStatus == 2){
+        	middleStatus = 3;
+    	}
+		if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_R1) and middleStatus == 3){
+        	middleScore.set_value(LOW);
+        	middleStatus = 4;
+    	}
+		if(!controller.get_digital(pros::E_CONTROLLER_DIGITAL_R1) && middleStatus == 4){
+        	middleStatus = 1;
+    	}
+
+
+
     // Delay to save resources for other tasks
 	pros::delay(10);
     }

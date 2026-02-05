@@ -162,10 +162,10 @@ void skills(){
 void redRightLong(){
     
 	chassis.setPose({17.2, -51.2, 0});
-	hood.set_value(HIGH);
+	hood.set_value(LOW);
 	intaking = true;
-	chassis.moveToPoint(21, -28, 1000, {.maxSpeed = 80});
-	chassis.waitUntil(11);
+	chassis.moveToPoint(21, -28, 6000, {.maxSpeed = 55});
+	chassis.waitUntil(12);
 	matchLoader.set_value(HIGH);
 	//chassis.turnToHeading(45, 700, {}, false);
 	/*
@@ -175,6 +175,7 @@ void redRightLong(){
 	chassis.moveToPoint(20, -26, 1000, {.forwards = false});
 	*/
 	chassis.moveToPoint(48, -51, 2000, {.forwards = false, .maxSpeed = 100}, false);
+	matchLoader.set_value(LOW);
 	chassis.turnToHeading(180, 700);
 	/*
 	chassis.moveToPoint(48.5, -25, 1000, {.forwards = false, .maxSpeed = 80}, false);
@@ -184,6 +185,7 @@ void redRightLong(){
 	intaking = false;
 	matchLoader.set_value(HIGH);
 	*/
+	/*
 	chassis.moveToPoint(47, -62, 1400, {.maxSpeed = 60}, false);
 	leftMotors.set_brake_mode(pros::MotorBrake::hold);
 	rightMotors.set_brake_mode(pros::MotorBrake::hold);
@@ -192,8 +194,9 @@ void redRightLong(){
 	intaking = true;
 	hood.set_value(HIGH);
 	pros::delay(200);
-	chassis.moveToPoint(48, -25, 1000, {.forwards = false, .maxSpeed = 80} ,false);
-	hood.set_value(LOW);
+	*/
+	chassis.moveToPoint(51, -25, 1000, {.forwards = false, .maxSpeed = 80} ,false);
+	hood.set_value(HIGH);
 	matchLoader.set_value(LOW);
 	pros::delay(600);
 	intaking=false;
@@ -204,10 +207,13 @@ void redRightLong(){
 	pros::delay(1500);
 	chassis.moveToPoint(48, -44, 1000, {});
 	chassis.waitUntil(3);
-	hood.set_value(HIGH);
-	chassis.moveToPoint(41, -30, 1000, {.forwards = false});
-	chassis.moveToPoint(40, -8, 2000, {.forwards = false}, false);
+	hood.set_value(LOW);
+	descore.set_value(LOW);
+	chassis.moveToPoint(44, -30, 1000, {.forwards = false});
+	chassis.moveToPoint(43, -10, 2000, {.forwards = false}, false);
 	chassis.turnToHeading(170, 700, {}, false);
+	leftMotors.set_brake_mode(pros::MotorBrake::hold);
+	rightMotors.set_brake_mode(pros::MotorBrake::hold);
 	leftMotors.brake();
 	rightMotors.brake();
 
@@ -387,6 +393,15 @@ void leftMiddle(){
 
 // Solo Atonomous Win Point Code
 void redAWP(){
+	acceptedMCLError = 5;
+	chassis.setPose({5.7, -46, 90});
+	chassis.moveToPoint(47, -46, 2000, {.forwards = false});
+	chassis.turnToHeading(180, 700);
+	chassis.moveToPoint(46.5, -56.2, 1000);
+	chassis.moveToPoint(47.5, -30.2, 1000, {.forwards = false});
+	//outtaking = true;
+	//chassis.moveToPoint(0, 6, 10000, {.minSpeed = 127});
+	/*
     chassis.setPose({19.6, -47.8, 89});
 	hood.set_value(HIGH);
 	intaking = true;
@@ -435,7 +450,7 @@ void redAWP(){
 	hood.set_value(LOW);
 	matchLoader.set_value(LOW);
 	pros::delay(1000);
-
+	*/
 	
 
 

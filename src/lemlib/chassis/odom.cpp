@@ -103,29 +103,22 @@ double cross_product(Point a, Point b, Point c) {
 }
 
 // Function to find the intersection point of a ray (P + t*R) and a line segment (Q + u*S)
-// Ray origin P, Ray direction R (normalized or not)
-// Segment endpoints Q and E, vector S = E-Q
 bool raySegmentIntersection(Point p, Point r_dir, Point q, Point e, Point& intersection) {
     Point s_dir = {e.x - q.x, e.y - q.y}; // Segment direction vector
     Point q_minus_p = {q.x - p.x, q.y - p.y}; // Vector from ray origin to segment start
 
-    // Denominator for t and u (cross product of direction vectors)
     double denominator = r_dir.x * s_dir.y - r_dir.y * s_dir.x;
 
-    // Check if lines are parallel (denominator is close to zero)
+    // Check if lines are parallel 
     if (std::abs(denominator) < 1e-9) {
-        // Lines are parallel. May be collinear and overlapping, or just parallel.
-        // For this simple case, we assume no intersection to avoid complex collinear checks.
         return false;
     }
 
-    // Solve for parameters t (ray) and u (segment) using Cramer's rule or similar
+    // Solve using Cramer's rule
     double t = (q_minus_p.x * s_dir.y - q_minus_p.y * s_dir.x) / denominator;
     double u = (q_minus_p.x * r_dir.y - q_minus_p.y * r_dir.x) / denominator;
 
     // Check if the intersection point falls within the constraints:
-    // t >= 0 for the ray (starts at origin and goes infinitely in one direction)
-    // 0 <= u <= 1 for the line segment (between endpoints)
     if (t >= 0.0 && u >= 0.0 && u <= 1.0) {
         // Intersection found
         intersection.x = p.x + t * r_dir.x;
@@ -133,7 +126,7 @@ bool raySegmentIntersection(Point p, Point r_dir, Point q, Point e, Point& inter
         return true;
     }
 
-    // No intersection within the valid ranges
+    // No intersection 
     return false;
 }
 
@@ -156,8 +149,8 @@ void lemlib::update() {
     float leftDis = 0;
     float verticalOffsetTheoretical = 0;
     float horizontalOffsetTheoretical = 0;
-    float mclX = 100000;
-    float mclY = 100000;
+    float mclX = 1000000;
+    float mclY = 1000000;
     if (odomSensors.vertical1 != nullptr) vertical1Raw = odomSensors.vertical1->getDistanceTraveled();
     if (odomSensors.vertical2 != nullptr) vertical2Raw = odomSensors.vertical2->getDistanceTraveled();
     if (odomSensors.horizontal1 != nullptr) horizontal1Raw = odomSensors.horizontal1->getDistanceTraveled();
@@ -243,121 +236,160 @@ void lemlib::update() {
         localY = 2 * sin(deltaHeading / 2) * (deltaY / deltaHeading + verticalOffset);
     }
 
-    // START OF CONSTANT DISTANCE RESET CODE
+// START OF CONSTANT DISTANCE RESET CODE
+
+// Front distance sensor (if available)
+if (mclLocal.frontDistance != nullptr && frontDis < 70){
+    float sensorHeading = odomPose.theta;
+    float cosAngle = cosf(sensorHeading);
+    float sinAngle = sinf(sensorHeading);
     
-    // Front distance sensor (if available)
-    if (mclLocal.frontDistance != nullptr && frontDis < 70){
-        Point sensor = pointAtDistance({odomPose.x, odomPose.y}, sqrtf(powf(mclLocal.frontLatOff, 2)+powf(mclLocal.frontVertOff, 2)), odomPose.theta+atanf(mclLocal.frontLatOff/mclLocal.frontVertOff));
-        Point intersection;
-        if(raySegmentIntersection({sensor.x, sensor.y}, pointAtDistance(sensor, 1, odomPose.theta), {-70.2, 70.2}, {70.2, 70.2}, intersection)){
-            if ((intersection.x<41.8&&intersection.x>51.8)&&(intersection.x>-41.8&&intersection.x<-51.8)){
-                centerToWall = (frontDis + mclLocal.frontVertOff) - (tanf(odomPose.theta)*mclLocal.frontLatOff);
-                mclY = 70.2-centerToWall;
-            }
-        } else if (raySegmentIntersection({sensor.x, sensor.y}, pointAtDistance(sensor, 1, odomPose.theta), {-70.2, 70.2}, {-70.2, -70.2}, intersection)){
-            if (1){
-                centerToWall = (frontDis + mclLocal.frontVertOff) - (tanf(odomPose.theta)*mclLocal.frontLatOff);
-                mclX = 70.2-centerToWall;
-            }
-        } else if(raySegmentIntersection({sensor.x, sensor.y}, pointAtDistance(sensor, 1, odomPose.theta), {-70.2, 70.2}, {-70.2, 70.2}, intersection)){
-            if ((intersection.x<41.8&&intersection.x>51.8)&&(intersection.x>-41.8&&intersection.x<-51.8)){
-                centerToWall = (frontDis + mclLocal.frontVertOff) - (tanf(odomPose.theta)*mclLocal.frontLatOff);
-                mclY = -70.2+centerToWall;
-            }
-        }else {
-            if (1){
-                centerToWall = (frontDis + mclLocal.frontVertOff) - (tanf(odomPose.theta)*mclLocal.frontLatOff);
-                mclX = 70.2-centerToWall;
+    float offsetAngle = atan2f(mclLocal.frontLatOff, mclLocal.frontVertOff);
+    float offsetDist = sqrtf(powf(mclLocal.frontLatOff, 2) + powf(mclLocal.frontVertOff, 2));
+    Point sensor = pointAtDistance({odomPose.x, odomPose.y}, offsetDist, odomPose.theta + offsetAngle);
+    Point intersection;
+    
+    if(raySegmentIntersection({sensor.x, sensor.y}, {sinAngle, cosAngle}, {-70.2, 70.2}, {70.2, 70.2}, intersection)){
+        // Top wall (horizontal)
+        if (!((intersection.x>41.8&&intersection.x<51.8)||(intersection.x<-41.8&&intersection.x>-51.8))){
+            if (fabs(cosAngle) > 0.1) {
+                mclY = 70.2 - (frontDis + mclLocal.frontVertOff) * cosAngle + mclLocal.frontLatOff * sinAngle;
             }
         }
-
-    }
-
-    // Right distance sensor (if available)
-    if (mclLocal.rightDistance != nullptr && rightDis < 70){
-        Point sensor = pointAtDistance({odomPose.x, odomPose.y}, sqrtf(powf(mclLocal.rightLatOff, 2)+powf(mclLocal.rightVertOff, 2)), odomPose.theta+degToRad(90+atanf(mclLocal.rightLatOff/mclLocal.rightVertOff)));
-        Point intersection;
-        if(raySegmentIntersection({sensor.x, sensor.y}, pointAtDistance(sensor, 1, odomPose.theta+degToRad(90)), {-70.2, 70.2}, {70.2, 70.2}, intersection)){
-            if ((intersection.x<41.8&&intersection.x>51.8)&&(intersection.x>-41.8&&intersection.x<-51.8)){
-                centerToWall = (rightDis + mclLocal.rightVertOff) - (tanf(odomPose.theta)*mclLocal.rightLatOff);
-                mclY = 70.2-centerToWall;
-            }
-        } else if (raySegmentIntersection({sensor.x, sensor.y}, pointAtDistance(sensor, 1, odomPose.theta+degToRad(90)), {-70.2, 70.2}, {-70.2, -70.2}, intersection)){
-            if (1){
-                centerToWall = (rightDis + mclLocal.rightVertOff) - (tanf(odomPose.theta)*mclLocal.rightLatOff);
-                mclX = 70.2-centerToWall;
-            }
-        } else if(raySegmentIntersection({sensor.x, sensor.y}, pointAtDistance(sensor, 1, odomPose.theta+degToRad(90)), {-70.2, 70.2}, {-70.2, 70.2}, intersection)){
-            if ((intersection.x<41.8&&intersection.x>51.8)&&(intersection.x>-41.8&&intersection.x<-51.8)){
-                centerToWall = (rightDis + mclLocal.rightVertOff) - (tanf(odomPose.theta)*mclLocal.rightLatOff);
-                mclY = -70.2+centerToWall;
-            }
-        }else {
-            if (1){
-                centerToWall = (rightDis + mclLocal.rightVertOff) - (tanf(odomPose.theta)*mclLocal.rightLatOff);
-                mclX = 70.2-centerToWall;
+    } else if (raySegmentIntersection({sensor.x, sensor.y}, {sinAngle, cosAngle}, {-70.2, 70.2}, {-70.2, -70.2}, intersection)){
+        // Left wall (vertical)
+        if (fabs(sinAngle) > 0.1) {
+            mclX = -70.2 - (frontDis + mclLocal.frontVertOff) * sinAngle - mclLocal.frontLatOff * cosAngle;
+        }
+    } else if(raySegmentIntersection({sensor.x, sensor.y}, {sinAngle, cosAngle}, {-70.2, -70.2}, {70.2, -70.2}, intersection)){
+        // Bottom wall (horizontal)
+        if (!((intersection.x>41.8&&intersection.x<51.8)||(intersection.x<-41.8&&intersection.x>-51.8))){
+            if (fabs(cosAngle) > 0.1) {
+                mclY = -70.2 - (frontDis + mclLocal.frontVertOff) * cosAngle + mclLocal.frontLatOff * sinAngle;
             }
         }
-
+    } else {
+        // Right wall (vertical)
+        if (fabs(sinAngle) > 0.1) {
+            mclX = 70.2 - (frontDis + mclLocal.frontVertOff) * sinAngle - mclLocal.frontLatOff * cosAngle;
+        }
     }
+}
 
-    // Back distance sensor (if available)
-    if (mclLocal.backDistance != nullptr && backDis < 70){
-        Point sensor = pointAtDistance({odomPose.x, odomPose.y}, sqrtf(powf(mclLocal.backLatOff, 2)+powf(mclLocal.backVertOff, 2)), odomPose.theta+degToRad(180+atanf(mclLocal.backLatOff/mclLocal.backVertOff)));
-        Point intersection;
-        if(raySegmentIntersection({sensor.x, sensor.y}, pointAtDistance(sensor, 1, odomPose.theta+degToRad(180)), {-70.2, 70.2}, {70.2, 70.2}, intersection)){
-            if ((intersection.x<41.8&&intersection.x>51.8)&&(intersection.x>-41.8&&intersection.x<-51.8)){
-                centerToWall = (backDis + mclLocal.backVertOff) - (tanf(odomPose.theta)*mclLocal.backLatOff);
-                mclY = 70.2-centerToWall;
-            }
-        } else if (raySegmentIntersection({sensor.x, sensor.y}, pointAtDistance(sensor, 1, odomPose.theta+degToRad(180)), {-70.2, 70.2}, {-70.2, -70.2}, intersection)){
-            if (1){
-                centerToWall = (backDis + mclLocal.backVertOff) - (tanf(odomPose.theta)*mclLocal.backLatOff);
-                mclX = 70.2-centerToWall;
-            }
-        } else if(raySegmentIntersection({sensor.x, sensor.y}, pointAtDistance(sensor, 1, odomPose.theta+degToRad(180)), {-70.2, 70.2}, {-70.2, 70.2}, intersection)){
-            if ((intersection.x<41.8&&intersection.x>51.8)&&(intersection.x>-41.8&&intersection.x<-51.8)){
-                centerToWall = (backDis + mclLocal.backVertOff) - (tanf(odomPose.theta)*mclLocal.backLatOff);
-                mclY = -70.2+centerToWall;
-            }
-        }else {
-            if (1){
-                centerToWall = (backDis + mclLocal.backVertOff) - (tanf(odomPose.theta)*mclLocal.backLatOff);
-                mclX = 70.2-centerToWall;
+// Right distance sensor (if available)
+if (mclLocal.rightDistance != nullptr && rightDis < 70){
+    float sensorHeading = odomPose.theta + M_PI/2;
+    float cosAngle = cosf(sensorHeading);
+    float sinAngle = sinf(sensorHeading);
+    
+    float offsetAngle = atan2f(mclLocal.rightLatOff, mclLocal.rightVertOff);
+    float offsetDist = sqrtf(powf(mclLocal.rightLatOff, 2) + powf(mclLocal.rightVertOff, 2));
+    Point sensor = pointAtDistance({odomPose.x, odomPose.y}, offsetDist, odomPose.theta + M_PI/2 + offsetAngle);
+    Point intersection;
+    
+    if(raySegmentIntersection({sensor.x, sensor.y}, {sinAngle, cosAngle}, {-70.2, 70.2}, {70.2, 70.2}, intersection)){
+        // Top wall (horizontal)
+        if (!((intersection.x>41.8&&intersection.x<51.8)||(intersection.x<-41.8&&intersection.x>-51.8))){
+            if (fabs(cosAngle) > 0.1) {
+                mclY = 70.2 - (rightDis + mclLocal.rightVertOff) * cosAngle + mclLocal.rightLatOff * sinAngle;
             }
         }
-
-    }
-
-    // Left distance sensor (if available)
-    if (mclLocal.leftDistance != nullptr && leftDis < 70){
-        Point sensor = pointAtDistance({odomPose.x, odomPose.y}, sqrtf(powf(mclLocal.leftLatOff, 2)+powf(mclLocal.leftVertOff, 2)), odomPose.theta+degToRad(-90+atanf(mclLocal.leftLatOff/mclLocal.leftVertOff)));
-        Point intersection;
-        if(raySegmentIntersection({sensor.x, sensor.y}, pointAtDistance(sensor, 1, odomPose.theta+degToRad(-90)), {-70.2, 70.2}, {70.2, 70.2}, intersection)){
-            if ((intersection.x<41.8&&intersection.x>51.8)&&(intersection.x>-41.8&&intersection.x<-51.8)){
-                centerToWall = (leftDis + mclLocal.leftVertOff) - (tanf(odomPose.theta)*mclLocal.leftLatOff);
-                mclY = 70.2-centerToWall;
-            }
-        } else if (raySegmentIntersection({sensor.x, sensor.y}, pointAtDistance(sensor, 1, odomPose.theta+degToRad(-90)), {-70.2, 70.2}, {-70.2, -70.2}, intersection)){
-            if (1){
-                centerToWall = (leftDis + mclLocal.leftVertOff) - (tanf(odomPose.theta)*mclLocal.leftLatOff);
-                mclX = 70.2-centerToWall;
-            }
-        } else if(raySegmentIntersection({sensor.x, sensor.y}, pointAtDistance(sensor, 1, odomPose.theta+degToRad(-90)), {-70.2, 70.2}, {-70.2, 70.2}, intersection)){
-            if ((intersection.x<41.8&&intersection.x>51.8)&&(intersection.x>-41.8&&intersection.x<-51.8)){
-                centerToWall = (leftDis + mclLocal.leftVertOff) - (tanf(odomPose.theta)*mclLocal.leftLatOff);
-                mclY = -70.2+centerToWall;
-            }
-        }else {
-            if (1){
-                centerToWall = (leftDis + mclLocal.leftVertOff) - (tanf(odomPose.theta)*mclLocal.leftLatOff);
-                mclX = 70.2-centerToWall;
+    } else if (raySegmentIntersection({sensor.x, sensor.y}, {sinAngle, cosAngle}, {-70.2, 70.2}, {-70.2, -70.2}, intersection)){
+        // Left wall (vertical)
+        if (fabs(sinAngle) > 0.1) {
+            mclX = -70.2 - (rightDis + mclLocal.rightVertOff) * sinAngle - mclLocal.rightLatOff * cosAngle;
+        }
+    } else if(raySegmentIntersection({sensor.x, sensor.y}, {sinAngle, cosAngle}, {-70.2, -70.2}, {70.2, -70.2}, intersection)){
+        // Bottom wall (horizontal)
+        if (!((intersection.x>41.8&&intersection.x<51.8)||(intersection.x<-41.8&&intersection.x>-51.8))){
+            if (fabs(cosAngle) > 0.1) {
+                mclY = -70.2 - (rightDis + mclLocal.rightVertOff) * cosAngle + mclLocal.rightLatOff * sinAngle;
             }
         }
-
+    } else {
+        // Right wall (vertical)
+        if (fabs(sinAngle) > 0.1) {
+            mclX = 70.2 - (rightDis + mclLocal.rightVertOff) * sinAngle - mclLocal.rightLatOff * cosAngle;
+        }
     }
-    // END DISTANCE RESET CODE
+}
 
+// Back distance sensor (if available)
+if (mclLocal.backDistance != nullptr && backDis < 70){
+    float sensorHeading = odomPose.theta + M_PI;
+    float cosAngle = cosf(sensorHeading);
+    float sinAngle = sinf(sensorHeading);
+    
+    float offsetAngle = atan2f(mclLocal.backLatOff, mclLocal.backVertOff);
+    float offsetDist = sqrtf(powf(mclLocal.backLatOff, 2) + powf(mclLocal.backVertOff, 2));
+    Point sensor = pointAtDistance({odomPose.x, odomPose.y}, offsetDist, odomPose.theta + M_PI + offsetAngle);
+    Point intersection;
+    
+    if(raySegmentIntersection({sensor.x, sensor.y}, {sinAngle, cosAngle}, {-70.2, 70.2}, {70.2, 70.2}, intersection)){
+        // Top wall (horizontal)
+        if (!((intersection.x>41.8&&intersection.x<51.8)||(intersection.x<-41.8&&intersection.x>-51.8))){
+            if (fabs(cosAngle) > 0.1) {
+                mclY = 70.2 - (backDis + mclLocal.backVertOff) * cosAngle + mclLocal.backLatOff * sinAngle;
+            }
+        }
+    } else if (raySegmentIntersection({sensor.x, sensor.y}, {sinAngle, cosAngle}, {-70.2, 70.2}, {-70.2, -70.2}, intersection)){
+        // Left wall (vertical)
+        if (fabs(sinAngle) > 0.1) {
+            mclX = -70.2 - (backDis + mclLocal.backVertOff) * sinAngle - mclLocal.backLatOff * cosAngle;
+        }
+    } else if(raySegmentIntersection({sensor.x, sensor.y}, {sinAngle, cosAngle}, {-70.2, -70.2}, {70.2, -70.2}, intersection)){
+        // Bottom wall (horizontal)
+        if (!((intersection.x>41.8&&intersection.x<51.8)||(intersection.x<-41.8&&intersection.x>-51.8))){
+            if (fabs(cosAngle) > 0.1) {
+                mclY = -70.2 - (backDis + mclLocal.backVertOff) * cosAngle + mclLocal.backLatOff * sinAngle;
+            }
+        }
+    } else {
+        // Right wall (vertical)
+        if (fabs(sinAngle) > 0.1) {
+            mclX = 70.2 - (backDis + mclLocal.backVertOff) * sinAngle - mclLocal.backLatOff * cosAngle;
+        }
+    }
+}
+
+// Left distance sensor (if available)
+if (mclLocal.leftDistance != nullptr && leftDis < 70){
+    float sensorHeading = odomPose.theta - M_PI/2;
+    float cosAngle = cosf(sensorHeading);
+    float sinAngle = sinf(sensorHeading);
+    
+    float offsetAngle = atan2f(mclLocal.leftLatOff, mclLocal.leftVertOff);
+    float offsetDist = sqrtf(powf(mclLocal.leftLatOff, 2) + powf(mclLocal.leftVertOff, 2));
+    Point sensor = pointAtDistance({odomPose.x, odomPose.y}, offsetDist, odomPose.theta - M_PI/2 + offsetAngle);
+    Point intersection;
+    
+    if(raySegmentIntersection({sensor.x, sensor.y}, {sinAngle, cosAngle}, {-70.2, 70.2}, {70.2, 70.2}, intersection)){
+        // Top wall (horizontal)
+        if (!((intersection.x>41.8&&intersection.x<51.8)||(intersection.x<-41.8&&intersection.x>-51.8))){
+            if (fabs(cosAngle) > 0.1) {
+                mclY = 70.2 - (leftDis + mclLocal.leftVertOff) * cosAngle + mclLocal.leftLatOff * sinAngle;
+            }
+        }
+    } else if (raySegmentIntersection({sensor.x, sensor.y}, {sinAngle, cosAngle}, {-70.2, 70.2}, {-70.2, -70.2}, intersection)){
+        // Left wall (vertical)
+        if (fabs(sinAngle) > 0.1) {
+            mclX = -70.2 - (leftDis + mclLocal.leftVertOff) * sinAngle - mclLocal.leftLatOff * cosAngle;
+        }
+    } else if(raySegmentIntersection({sensor.x, sensor.y}, {sinAngle, cosAngle}, {-70.2, -70.2}, {70.2, -70.2}, intersection)){
+        // Bottom wall (horizontal)
+        if (!((intersection.x>41.8&&intersection.x<51.8)||(intersection.x<-41.8&&intersection.x>-51.8))){
+            if (fabs(cosAngle) > 0.1) {
+                mclY = -70.2 - (leftDis + mclLocal.leftVertOff) * cosAngle + mclLocal.leftLatOff * sinAngle;
+            }
+        }
+    } else {
+        // Right wall (vertical)
+        if (fabs(sinAngle) > 0.1) {
+            mclX = 70.2 - (leftDis + mclLocal.leftVertOff) * sinAngle - mclLocal.leftLatOff * cosAngle;
+        }
+    }
+}
+// END DISTANCE RESET CODE
     // save previous pose
     prevPose = odomPose;
 
@@ -368,11 +400,11 @@ void lemlib::update() {
     odomPose.y += localY * cos(avgHeading);
     odomPose.y += localX * sin(avgHeading);
 
-    if(mclX != 1000000 && abs(odomPose.x-mclX)< acceptedMCLError){
-        odomPose.x = mclX;
-        numOfResets += 1;
+    if(mclX != 1000000 && !std::isnan(mclX) && fabs(odomPose.x-mclX) < acceptedMCLError){
+    odomPose.x = mclX;
+    numOfResets += 1;
     }
-    if(mclY != 1000000 && abs(odomPose.y-mclY)< acceptedMCLError){
+    if(mclY != 1000000 && !std::isnan(mclY) && fabs(odomPose.y-mclY) < acceptedMCLError){
         odomPose.y = mclY;
         numOfResets += 1;
     }
