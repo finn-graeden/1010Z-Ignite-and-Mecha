@@ -5,6 +5,7 @@
 
 #include <cmath>
 #include <math.h>
+#include "pros/distance.hpp"
 #include "pros/misc.hpp"
 #include "pros/rtos.hpp"
 #include "lemlib/util.hpp"
@@ -34,6 +35,8 @@ float prevHorizontal2 = 0;
 float prevImu = 0;
 
 int numOfResets = 0;
+
+int numOfMatchloaderHits = 0;
 
 int acceptedMCLError = 5;
 
@@ -132,6 +135,47 @@ bool raySegmentIntersection(Point p, Point r_dir, Point q, Point e, Point& inter
 
 Point pointAtDistance(Point startPoint, float distance, float heading){
     return Point{startPoint.x+(sinf(heading)*distance), startPoint.y+(cosf(heading)*distance)};
+}
+
+void distanceReset(pros::Distance *distance, float *mclX, float *mclY, float angleOffset, float horizontalOff, float verticalOff){
+    float frontDis = distance->get_distance()/25.4;
+    if (mclLocal.frontDistance != nullptr && frontDis < 70){
+    float sensorHeading = odomPose.theta+angleOffset;
+    float cosAngle = cosf(sensorHeading);
+    float sinAngle = sinf(sensorHeading);
+    
+    //check this value due to possible idiocy
+    float offsetAngle = atan2f(mclLocal.frontLatOff, mclLocal.frontVertOff);
+    float offsetDist = sqrtf(powf(mclLocal.frontLatOff, 2) + powf(mclLocal.frontVertOff, 2));
+    Point sensor = pointAtDistance({odomPose.x, odomPose.y}, offsetDist, odomPose.theta + offsetAngle);
+    Point intersection;
+    
+    if(raySegmentIntersection({sensor.x, sensor.y}, {sinAngle, cosAngle}, {-70.2, 70.2}, {70.2, 70.2}, intersection)){
+        // Top wall (horizontal)
+        if (!((intersection.x>38&&intersection.x<54)||(intersection.x<-38&&intersection.x>-54))){
+            if (fabs(cosAngle) > 0.1) {
+                *mclY = 70.2 - (frontDis + mclLocal.frontVertOff) * cosAngle + mclLocal.frontLatOff * sinAngle;
+            }
+        }
+    } else if (raySegmentIntersection({sensor.x, sensor.y}, {sinAngle, cosAngle}, {-70.2, 70.2}, {-70.2, -70.2}, intersection)){
+        // Left wall (vertical)
+        if (fabs(sinAngle) > 0.1) {
+            *mclX = -70.2 - (frontDis + mclLocal.frontVertOff) * sinAngle - mclLocal.frontLatOff * cosAngle;
+        } 
+    } else if(raySegmentIntersection({sensor.x, sensor.y}, {sinAngle, cosAngle}, {-70.2, -70.2}, {70.2, -70.2}, intersection)){
+        // Bottom wall (horizontal)
+        if (!((intersection.x>38&&intersection.x<54)||(intersection.x<-38&&intersection.x>-54))){
+            if (fabs(cosAngle) > 0.1) {
+                *mclY = -70.2 - (frontDis + mclLocal.frontVertOff) * cosAngle + mclLocal.frontLatOff * sinAngle;
+            }
+        } 
+    } else {
+        // Right wall (vertical)
+        if (fabs(sinAngle) > 0.1) {
+            *mclX = 70.2 - (frontDis + mclLocal.frontVertOff) * sinAngle - mclLocal.frontLatOff * cosAngle;
+        }
+    }
+}
 }
 
 // Function that updates the position of the robot constantly
@@ -244,6 +288,7 @@ if (mclLocal.frontDistance != nullptr && frontDis < 70){
     float cosAngle = cosf(sensorHeading);
     float sinAngle = sinf(sensorHeading);
     
+    //check this value due to possible idiocy
     float offsetAngle = atan2f(mclLocal.frontLatOff, mclLocal.frontVertOff);
     float offsetDist = sqrtf(powf(mclLocal.frontLatOff, 2) + powf(mclLocal.frontVertOff, 2));
     Point sensor = pointAtDistance({odomPose.x, odomPose.y}, offsetDist, odomPose.theta + offsetAngle);
@@ -251,7 +296,7 @@ if (mclLocal.frontDistance != nullptr && frontDis < 70){
     
     if(raySegmentIntersection({sensor.x, sensor.y}, {sinAngle, cosAngle}, {-70.2, 70.2}, {70.2, 70.2}, intersection)){
         // Top wall (horizontal)
-        if (!((intersection.x>41.8&&intersection.x<51.8)||(intersection.x<-41.8&&intersection.x>-51.8))){
+        if (!((intersection.x>38&&intersection.x<54)||(intersection.x<-38&&intersection.x>-54))){
             if (fabs(cosAngle) > 0.1) {
                 mclY = 70.2 - (frontDis + mclLocal.frontVertOff) * cosAngle + mclLocal.frontLatOff * sinAngle;
             }
@@ -260,14 +305,14 @@ if (mclLocal.frontDistance != nullptr && frontDis < 70){
         // Left wall (vertical)
         if (fabs(sinAngle) > 0.1) {
             mclX = -70.2 - (frontDis + mclLocal.frontVertOff) * sinAngle - mclLocal.frontLatOff * cosAngle;
-        }
+        } 
     } else if(raySegmentIntersection({sensor.x, sensor.y}, {sinAngle, cosAngle}, {-70.2, -70.2}, {70.2, -70.2}, intersection)){
         // Bottom wall (horizontal)
-        if (!((intersection.x>41.8&&intersection.x<51.8)||(intersection.x<-41.8&&intersection.x>-51.8))){
+        if (!((intersection.x>38&&intersection.x<54)||(intersection.x<-38&&intersection.x>-54))){
             if (fabs(cosAngle) > 0.1) {
                 mclY = -70.2 - (frontDis + mclLocal.frontVertOff) * cosAngle + mclLocal.frontLatOff * sinAngle;
             }
-        }
+        } 
     } else {
         // Right wall (vertical)
         if (fabs(sinAngle) > 0.1) {
@@ -289,7 +334,7 @@ if (mclLocal.rightDistance != nullptr && rightDis < 70){
     
     if(raySegmentIntersection({sensor.x, sensor.y}, {sinAngle, cosAngle}, {-70.2, 70.2}, {70.2, 70.2}, intersection)){
         // Top wall (horizontal)
-        if (!((intersection.x>41.8&&intersection.x<51.8)||(intersection.x<-41.8&&intersection.x>-51.8))){
+        if (!((intersection.x>38&&intersection.x<54)||(intersection.x<-38&&intersection.x>-54))){
             if (fabs(cosAngle) > 0.1) {
                 mclY = 70.2 - (rightDis + mclLocal.rightVertOff) * cosAngle + mclLocal.rightLatOff * sinAngle;
             }
@@ -301,7 +346,7 @@ if (mclLocal.rightDistance != nullptr && rightDis < 70){
         }
     } else if(raySegmentIntersection({sensor.x, sensor.y}, {sinAngle, cosAngle}, {-70.2, -70.2}, {70.2, -70.2}, intersection)){
         // Bottom wall (horizontal)
-        if (!((intersection.x>41.8&&intersection.x<51.8)||(intersection.x<-41.8&&intersection.x>-51.8))){
+        if (!((intersection.x>38&&intersection.x<54)||(intersection.x<-38&&intersection.x>-54))){
             if (fabs(cosAngle) > 0.1) {
                 mclY = -70.2 - (rightDis + mclLocal.rightVertOff) * cosAngle + mclLocal.rightLatOff * sinAngle;
             }
@@ -327,7 +372,7 @@ if (mclLocal.backDistance != nullptr && backDis < 70){
     
     if(raySegmentIntersection({sensor.x, sensor.y}, {sinAngle, cosAngle}, {-70.2, 70.2}, {70.2, 70.2}, intersection)){
         // Top wall (horizontal)
-        if (!((intersection.x>41.8&&intersection.x<51.8)||(intersection.x<-41.8&&intersection.x>-51.8))){
+        if (!((intersection.x>38&&intersection.x<54)||(intersection.x<-38&&intersection.x>-54))){
             if (fabs(cosAngle) > 0.1) {
                 mclY = 70.2 - (backDis + mclLocal.backVertOff) * cosAngle + mclLocal.backLatOff * sinAngle;
             }
@@ -339,7 +384,7 @@ if (mclLocal.backDistance != nullptr && backDis < 70){
         }
     } else if(raySegmentIntersection({sensor.x, sensor.y}, {sinAngle, cosAngle}, {-70.2, -70.2}, {70.2, -70.2}, intersection)){
         // Bottom wall (horizontal)
-        if (!((intersection.x>41.8&&intersection.x<51.8)||(intersection.x<-41.8&&intersection.x>-51.8))){
+        if (!((intersection.x>38&&intersection.x<54)||(intersection.x<-38&&intersection.x>-54))){
             if (fabs(cosAngle) > 0.1) {
                 mclY = -70.2 - (backDis + mclLocal.backVertOff) * cosAngle + mclLocal.backLatOff * sinAngle;
             }
@@ -365,7 +410,7 @@ if (mclLocal.leftDistance != nullptr && leftDis < 70){
     
     if(raySegmentIntersection({sensor.x, sensor.y}, {sinAngle, cosAngle}, {-70.2, 70.2}, {70.2, 70.2}, intersection)){
         // Top wall (horizontal)
-        if (!((intersection.x>41.8&&intersection.x<51.8)||(intersection.x<-41.8&&intersection.x>-51.8))){
+        if (!((intersection.x>38&&intersection.x<54)||(intersection.x<-38&&intersection.x>-54))){
             if (fabs(cosAngle) > 0.1) {
                 mclY = 70.2 - (leftDis + mclLocal.leftVertOff) * cosAngle + mclLocal.leftLatOff * sinAngle;
             }
@@ -377,7 +422,7 @@ if (mclLocal.leftDistance != nullptr && leftDis < 70){
         }
     } else if(raySegmentIntersection({sensor.x, sensor.y}, {sinAngle, cosAngle}, {-70.2, -70.2}, {70.2, -70.2}, intersection)){
         // Bottom wall (horizontal)
-        if (!((intersection.x>41.8&&intersection.x<51.8)||(intersection.x<-41.8&&intersection.x>-51.8))){
+        if (!((intersection.x>38&&intersection.x<54)||(intersection.x<-38&&intersection.x>-54))){
             if (fabs(cosAngle) > 0.1) {
                 mclY = -70.2 - (leftDis + mclLocal.leftVertOff) * cosAngle + mclLocal.leftLatOff * sinAngle;
             }

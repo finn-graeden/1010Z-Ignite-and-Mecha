@@ -21,8 +21,8 @@ bool redTeam = true;
 bool isSkills = false;
 bool arcade = true;
 
-int code = 2;
-int numOfCodes = 5;
+int code = 5;
+int numOfCodes = 6;
 
 // controller
 pros::Controller controller(pros::E_CONTROLLER_MASTER);
@@ -39,7 +39,7 @@ pros::MotorGroup rightMotors(
 
 
 // Inertial Sensor on port 19
-pros::Imu imu(11);
+pros::Imu imu(21);
 
 // Limit switch for changing code
 pros::adi::DigitalIn limitSwitch('o');
@@ -69,11 +69,11 @@ pros::Motor intake_upper(-15, pros::MotorGearset::blue);
 pros::Rotation horizontalEnc(-16);
 
 // vertical tracking wheel 
-pros::Rotation verticalEnc(13);
+pros::Rotation verticalEnc(1);
 
 
 // Distance sensors for a simplified version of Monte Carlo Localization
-pros::Distance frontDistance(21);
+pros::Distance frontDistance(40);
 pros::Distance rightDistance(17);
 pros::Distance backDistance(7);
 pros::Distance leftDistance(3);
@@ -104,7 +104,7 @@ lemlib::Drivetrain drivetrain(
 lemlib::ControllerSettings
     linearController(11,  // proportional gain (kP)
                      0,   // integral gain (kI)
-                     55,   // derivative gain (kD)
+                     50,   // derivative gain (kD)
                      3, // anti windup
                     1, // small error range, in inches
                                               100, // small error range timeout, in milliseconds
@@ -315,26 +315,29 @@ void screenUpdate(){
 	while(1){
         pros::lcd::set_text(3, "X: " + std::to_string(chassis.getPose().x));
         pros::lcd::set_text(4, "Y: " + std::to_string(chassis.getPose().y));
-	pros::lcd::set_text(5, "Theta: " + std::to_string(chassis.getPose().theta));
-    pros::lcd::set_text(6, "Resets: " + std::to_string(numOfResets));
+	    pros::lcd::set_text(5, "Theta: " + std::to_string(chassis.getPose().theta));
+        pros::lcd::set_text(6, "Resets: " + std::to_string(numOfMatchloaderHits));
 	switch (code){
 		case 1:
 			pros::lcd::set_text(1, "Skills");
             break;
 			
 		case 2:
-			pros::lcd::set_text(1, "Right");
+			pros::lcd::set_text(1, "Right Rush");
             break;
 			
 		case 3:
-			pros::lcd::set_text(1, "Left");
+			pros::lcd::set_text(1, "Left Rush");
             break;
 			
 		case 4:
-			pros::lcd::set_text(1, "AWP");
+			pros::lcd::set_text(1, "Right Split");
             break;
 		case 5:
-			pros::lcd::set_text(1, "Long Goal Only");
+			pros::lcd::set_text(1, "Left Split");
+            break;
+        case 6:
+            pros::lcd::set_text(1, "SAWP");
             break;
 			
             
@@ -392,17 +395,20 @@ void autonomous() {
             skills();
 			break;
         case 2:
-            redRight();
+            rightRush();
 			break;
         case 3:
-            redLeft();
+            leftRush();
 			break;
         case 4:
-            redAWP();
+            rightSplit();
 			break;
 		case 5:
-			redRightLong();
+			leftSplit();
 			break;
+        case 6:
+            SAWP();
+            break;
     }
 }
 

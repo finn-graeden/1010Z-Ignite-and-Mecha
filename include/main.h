@@ -82,6 +82,7 @@ extern pros::adi::DigitalOut matchLoader;
 extern pros::adi::DigitalOut descore;
 extern pros::adi::DigitalOut wheelLift;
 extern pros::adi::DigitalOut hood;
+extern pros::adi::DigitalOut middleScore;
 #ifdef __cplusplus
 }
 #endif

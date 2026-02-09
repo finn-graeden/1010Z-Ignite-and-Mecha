@@ -5,6 +5,7 @@
 
 extern int numOfResets;
 extern int acceptedMCLError;
+extern int numOfMatchloaderHits;
 
 namespace lemlib {
 /**
