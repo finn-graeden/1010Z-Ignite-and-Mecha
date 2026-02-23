@@ -121,7 +121,7 @@ void skills(){
 	chassis.turnToHeading(0, 700);
 	matchLoader.set_value(HIGH);
 	chassis.moveToPoint(45.5, 64, 1000, {.maxSpeed = 70}, false);
-	acceptedMCLError = 4;
+	//acceptedMCLError = 4;
 	hood.set_value(HIGH);
 	leftMotors.brake();
 	rightMotors.brake();
@@ -161,7 +161,7 @@ void skills(){
 
 // Right side long goal only code
 void rightRush(){
-    acceptedMCLError = 5;
+    //acceptedMCLError = 5;
 	middleScore.set_value(HIGH);
 	intaking = true;
 	chassis.setPose({5.7, -46, -90});
@@ -254,7 +254,7 @@ void rightRush(){
 
 // Right side normal code
 void rightSplit(){
-	acceptedMCLError = 5;
+	//acceptedMCLError = 5;
 	intaking = true;
 	middleScore.set_value(HIGH);
 	chassis.setPose({5.7, -46, -90});
@@ -276,7 +276,7 @@ void rightSplit(){
 	outtaking = false;
 	intaking = true;
 	pros::delay(1500);
-	acceptedMCLError = 1;
+	//acceptedMCLError = 1;
 	chassis.moveToPoint(47.5, -46, 1000, {}, false);
 	hood.set_value(LOW);
 	chassis.moveToPoint(28, -20, 2000, {.maxSpeed = 80});
@@ -382,7 +382,7 @@ void leftRush(){
 }
 
 void leftSplit(){
-	acceptedMCLError = 5;
+	//acceptedMCLError = 5;
 	intaking = true;
 	middleScore.set_value(HIGH);
 	chassis.setPose({-5.7, -46, 270});
@@ -406,7 +406,7 @@ void leftSplit(){
 	pros::delay(1500);
 	intaking = false;
 	outtaking = true;
-	acceptedMCLError = 0;
+	//acceptedMCLError = 0;
 	chassis.moveToPoint(-47.5, -46, 1000, {}, false);
 	hood.set_value(LOW);
 	chassis.moveToPoint(-26, -22, 2000, {.maxSpeed = 80});
@@ -512,6 +512,7 @@ void leftMiddle(){
 
 // Solo Atonomous Win Point Code
 void SAWP(){
+	chassis.setPose({-24, -48, 0});
 	//chassis.moveToPoint(0, 5, 1000);
 	/*
 	acceptedMCLError = 5;

@@ -57,19 +57,23 @@ void lemlib::Chassis::ramsete(std::vector<squiggles::Pose> points, float timeout
         float v = vd*cosf(etheta)+k*ex;
         float sinc_etheta = (fabs(etheta) < 1e-6) ? 1.0f : sinf(etheta) / etheta;
         float w = wd+k*etheta+5*vd*sinc_etheta*ey;
-        float rps = w/(2*std::numbers::pi);
-        float inps = rps*(3.25*std::numbers::pi);
-        float mps = inps*39.3701;
-        float percentageAngular = mps/1.9;
+        //float rps = w/(2*std::numbers::pi);
+        //float inps = rps*(3.25*std::numbers::pi);
+        //float mps = inps*39.3701;
+        float percentageAngular = w/1.9;
         float percentageLinear = v/1.9;
         
         if (forwards){
-            drivetrain.leftMotors -> move(percentageLinear*127 + percentageAngular*127);
-            drivetrain.rightMotors -> move(percentageLinear*127 - percentageAngular*127);
+            //drivetrain.leftMotors -> move(percentageLinear*127 + percentageAngular*127);
+            //drivetrain.rightMotors -> move(percentageLinear*127 - percentageAngular*127);
+            drivetrain.leftMotors -> move_velocity(percentageLinear*600 + percentageAngular*600);
+            drivetrain.leftMotors -> move_velocity(percentageLinear*600 - percentageAngular*600);
         }else {
             // Negate linear velocity, keep angular correction direction
-            drivetrain.leftMotors -> move(-percentageLinear*127 + percentageAngular*127);
-            drivetrain.rightMotors -> move(-percentageLinear*127 - percentageAngular*127);
+            // drivetrain.leftMotors -> move(-percentageLinear*127 + percentageAngular*127);
+            // drivetrain.rightMotors -> move(-percentageLinear*127 - percentageAngular*127);
+            drivetrain.leftMotors -> move_velocity(-percentageLinear*600 + percentageAngular*600);
+            drivetrain.leftMotors -> move_velocity(-percentageLinear*600 - percentageAngular*600);
         }
 
         pros::delay(10);

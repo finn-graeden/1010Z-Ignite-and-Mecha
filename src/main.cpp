@@ -21,7 +21,7 @@ bool redTeam = true;
 bool isSkills = false;
 bool arcade = true;
 
-int code = 5;
+int code = 6;
 int numOfCodes = 6;
 
 // controller
@@ -30,16 +30,16 @@ pros::Controller controller(pros::E_CONTROLLER_MASTER);
 
 // Left and Right drive smotor groups
 pros::MotorGroup
-    leftMotors({-8, -9, -12},
+    leftMotors({-5, -1, -10},
                pros::MotorGearset::blue); 
                                           
 pros::MotorGroup rightMotors(
-    {18, 19, 20},
+    {8, 9, 21},
     pros::MotorGearset::blue); 
 
 
 // Inertial Sensor on port 19
-pros::Imu imu(21);
+pros::Imu imu(20);
 
 // Limit switch for changing code
 pros::adi::DigitalIn limitSwitch('o');
@@ -49,37 +49,37 @@ pros::Optical color(7);
 
 
 // Matchloader piston
-pros::adi::DigitalOut matchLoader('b');
+pros::adi::DigitalOut matchLoader('a');
 
 // Tracking Wheel lift piston
 pros::adi::DigitalOut wheelLift('m');
 
 // Goal Descore piston
-pros::adi::DigitalOut descore('a');
+pros::adi::DigitalOut descore('h');
 
 pros::adi::DigitalOut hood('c');
 
-pros::adi::DigitalOut middleScore('d');
+pros::adi::DigitalOut middleScore('g');
 
 // Intake motors
-pros::Motor intake(-14, pros::MotorGearset::blue);
-pros::Motor intake_upper(-15, pros::MotorGearset::blue);
+pros::Motor intake(-7, pros::MotorGearset::blue);
+pros::Motor intake_upper(-11, pros::MotorGearset::blue);
 
 // Horizontal tracking wheel
 pros::Rotation horizontalEnc(-16);
 
 // vertical tracking wheel 
-pros::Rotation verticalEnc(1);
+pros::Rotation verticalEnc(-6);
 
 
 // Distance sensors for a simplified version of Monte Carlo Localization
 pros::Distance frontDistance(40);
-pros::Distance rightDistance(17);
-pros::Distance backDistance(7);
-pros::Distance leftDistance(3);
+pros::Distance rightDistance(16);
+pros::Distance backDistance(17);
+pros::Distance leftDistance(50);
 
 
-lemlib::MCLSensors mcl(&frontDistance, 3.25, 6, &rightDistance, -0.75, 4.75, &backDistance, -5.125, 2.625, &leftDistance, 0.75, 4.75);
+lemlib::MCLSensors mcl(nullptr, 3.25, 6, &rightDistance, -0.75, 4.75, &backDistance, -4.25, 4.5, nullptr, 0.75, 4.75);
 
 
 // Horizontal Tracking wheel lemlib settings
@@ -132,7 +132,7 @@ lemlib::ControllerSettings
 lemlib::OdomSensors sensors(&vertical, // vertical tracking wheel
                             nullptr,   // vertical tracking wheel 2, set to
                                        // nullptr as we don't have a second one
-                            &horizontal, // horizontal tracking wheel
+                            nullptr, // horizontal tracking wheel
                             nullptr,     // horizontal tracking wheel 2, set to
                                      // nullptr as we don't have a second one
                             &imu // inertial sensor
@@ -245,7 +245,7 @@ void intakeControl() {
 		if(!controller.get_digital(pros::E_CONTROLLER_DIGITAL_B) && cancelStatus == 4){
         	cancelStatus = 1;
     	}
-        if(intake_upper.get_efficiency()<30 && intake_upper.get_power()>0) upperSpeed = 1;
+        //if(intake_upper.get_efficiency()<30 && intake_upper.get_power()>0) upperSpeed = 1;
         // Run motors
         if (upperSpeed != 0)intake_upper.move(upperSpeed);
         else intake_upper.brake();
