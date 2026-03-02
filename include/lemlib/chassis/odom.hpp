@@ -4,8 +4,10 @@
 #include "lemlib/pose.hpp"
 
 extern int numOfResets;
-extern int acceptedMCLError;
 extern int numOfMatchloaderHits;
+extern int debugValue;
+extern float allowedXOff;
+extern float allowedYOff;
 
 namespace lemlib {
 /**

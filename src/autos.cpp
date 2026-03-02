@@ -38,7 +38,204 @@ void ramsete(std::vector<squiggles::Pose> points, float timeout, bool async = fa
 
 // Skills code
 void skills(){
+	allowedXOff = 0;
+	lemlib::setPose({-17, -49.5, 0});
+	descore.set_value(HIGH);
+	intaking = true;
+
+	chassis.moveToPoint(-20, -30.5, 2000);
+	chassis.moveToPoint(-22.5, -22.5, 2000, {}, false);
+	intaking = false;
+	middleScore.set_value(HIGH);
+
+	chassis.turnToHeading(-134,700);
+	chassis.moveToPoint(-10, -13, 2000, {.forwards = false}, false);
 	hood.set_value(HIGH);
+	intaking = true;
+	middleGoal = true;
+	pros::delay(3000);
+	middleGoal = false;
+	hood.set_value(LOW);
+	allowedXOff = 4;
+	middleScore.set_value(LOW);
+	chassis.moveToPoint(-47.6, -41, 2000, {.maxSpeed = 100});
+	matchLoader.set_value(HIGH);
+	chassis.turnToPoint(-47.5, -58, 700);
+	chassis.moveToPoint(-47.5, -55,1000, {} , false);
+	chassis.moveToPoint(-47.5, -61,1000, {} , false);
+	rightMotors.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+	leftMotors.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+	rightMotors.brake();
+	leftMotors.brake();
+	pros::delay(1800);
+	chassis.moveToPoint(-62.5, -26, 2000, {.forwards = false}, false);
+	chassis.moveToPoint(-61.5, 26, 2000, {.forwards = false});
+	chassis.moveToPoint(-48, 46, 2000, {.forwards = false});
+	chassis.turnToHeading(0, 700);
+	chassis.moveToPoint(-47.5, 30, 2000, {.forwards = false}, false);
+	hood.set_value(HIGH);
+	pros::delay(2000);
+	chassis.moveToPoint(-47, 54, 2000, {}, false);
+	hood.set_value(LOW);
+	chassis.moveToPoint(-47, 58, 2000, {}, false);
+	rightMotors.brake();
+	leftMotors.brake();
+	pros::delay(1800);
+	chassis.moveToPoint(-47.5, 30, 2000, {.forwards = false}, false);
+	hood.set_value(HIGH);
+	pros::delay(2000);
+	chassis.moveToPoint(-47.5, 44, 2000, {}, false);
+	hood.set_value(LOW);
+	chassis.turnToHeading(90, 700);
+	allowedYOff = 10;
+	chassis.moveToPoint(47, 44, 4000, {.maxSpeed = 90});	
+	chassis.waitUntil(50);
+	allowedYOff = 4;
+	chassis.waitUntilDone();
+	allowedXOff = 10;
+	pros::delay(600);
+	allowedXOff = 4;
+	chassis.turnToPoint(47.1, 54, 700);
+	chassis.moveToPoint(47.1, 53.5, 1000);
+	chassis.moveToPoint(46.5,61.5, 2000, {}, false);
+	rightMotors.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+	leftMotors.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+	rightMotors.brake();
+	leftMotors.brake();
+	pros::delay(1500);
+	chassis.moveToPoint(62, 24, 2000, {.forwards = false});
+	chassis.moveToPoint(62.5, -26, 2000, {.forwards = false});
+	chassis.moveToPoint(49, -45.5, 1000, {.forwards = false});
+	chassis.turnToHeading(180,700);
+	chassis.moveToPoint(47, -29, 1000, {.forwards = false}, false);
+	hood.set_value(HIGH);
+	pros::delay(2000);
+	chassis.moveToPoint(47.5, -57, 1000, {. maxSpeed = 80}, false);
+	hood.set_value(LOW);
+	chassis.moveToPoint(44.5, -60, 600, {}, false);
+	rightMotors.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+	leftMotors.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+	rightMotors.brake();
+	leftMotors.brake();
+	pros::delay(1800);
+	chassis.moveToPoint(46.5, -29.5, 1000, {.forwards = false}, false);
+	hood.set_value(HIGH);
+	pros::delay(2000);
+	chassis.moveToPoint(26, -61, 1000, {}, false);
+	hood.set_value(LOW);
+	matchLoader.set_value(LOW);
+	chassis.moveToPoint(16, -63.5, 1000);
+	chassis.turnToHeading(-90, 700, {}, false);
+	wheelLift.set_value(HIGH);
+	intaking = false;
+	outtaking = true;
+	leftMotors.move_velocity(160);
+	rightMotors.move_velocity(160);
+	pros::delay(1400);
+	leftMotors.brake();
+	rightMotors.brake();
+
+
+	
+
+	/*
+move to 47, -45.5
+turn to heading 180
+move to 47.5, -30.5, backwards
+move to 47.5, -54
+move to 47.5, -58
+move to 47.5, -30.5, backwards
+move to 26, -61
+move to 15, -63.5
+tracking wheel up
+	outtaking = true
+*/
+
+
+
+	/*
+	chassis.moveToPoint(-30, 62, 2000);
+	chassis.turnToHeading(70, 700);
+	chassis.moveToPoint(-19, 66, 2000, {}, false);
+	wheelLift.set_value(HIGH);
+	intaking = true;
+	leftMotors.move_velocity(120);
+	rightMotors.move_velocity(120);
+	pros::delay(2000);
+	wheelLift.set_value(LOW);
+	allowedXOff = 0;
+	allowedYOff = 0;
+	leftMotors.brake();
+	rightMotors.brake();
+	chassis.moveToPoint(20, 44, 2000, {}, false);
+	allowedXOff = 40;
+	pros::delay(1700);
+	allowedYOff = 4;
+	pros::delay(1000);
+	allowedXOff = 4;
+
+	*/
+
+
+/*
+
+
+
+*/
+
+
+
+
+
+
+	/*
+x, y, direction
+-20.5, -30.5, forwards
+-33, -22.5, turn to -134 degrees
+-11.7, -11.3, backwards
+put down intake and score mid goal
+-47.5, -41, forwards
+matchload down
+-47.5, -58, forwards
+-63, -26, backwards
+matchloader up
+-62, 26, backwards
+-48, 46, backwards
+turn to heading 0
+-47.5, 31, backwards
+score and matchloader down
+-47, 54, forwards
+-47, 58, forwards
+-47.5, 31, backwards
+score and matchloader up
+-30, 62, forwards
+turn to heading 70
+-17, 64, forwards
+*/
+
+	/*
+	chassis.moveToPoint(-20, -32, 1000);
+	chassis.moveToPoint(-18.5, -21, 1000);
+	chassis.turnToHeading(-172,700);
+	chassis.moveToPoint(-17, -15, 1000, {.forwards= false});
+	chassis.moveToPoint(-46, -43, 2000);
+	chassis.turnToHeading(180, 700);
+	chassis.moveToPoint(-46.5, -57, 1000);
+	chassis.moveToPoint(-60, -22, 1000, {.forwards = false});
+	chassis.moveToPoint(-60, 30, 2000, {.forwards = false});
+	chassis.moveToPoint(-49.5, 49, 1000, {.forwards = false});
+	chassis.turnToHeading(0, 700);
+	chassis.moveToPoint(-48.5, 33, 1000, {.forwards = false});
+	chassis.moveToPoint(-49.5, 61, 1000);
+	chassis.moveToPoint(-48.5, 33, 1000, {.forwards = false});
+	chassis.moveToPoint(-48.5, -44, 1000);
+	*/
+
+	
+	
+
+
+	/*hood.set_value(HIGH);
     chassis.setPose({-19.7, -50.3, 0});
 	intaking = true;
 	chassis.moveToPoint(-24, -27, 2000);
@@ -104,7 +301,7 @@ void skills(){
 	matchLoader.set_value(LOW);
 	chassis.moveToPoint(-46, 36, 1000, {}, false);
 	hood.set_value(HIGH);
-	/*
+	
 	chassis.turnToPoint(-24, 65, 700, {.forwards = false});
 	chassis.moveToPoint(-32, 62, 1000, {.forwards = false});
 	chassis.moveToPoint(-22, 64, 1000, {.forwards = false});
@@ -115,7 +312,7 @@ void skills(){
 	chassis.moveToPoint(34, 48, 2000, {}, false);
 	matchLoader.set_value(HIGH);
 	chassis.turnToHeading(-20, 4000, {.direction = lemlib::AngularDirection::CW_CLOCKWISE, .maxSpeed = 40});
-	*/
+	
 	chassis.turnToHeading(90, 700);
 	chassis.moveToPoint(48, 48, 4000, {.maxSpeed = 80});
 	chassis.turnToHeading(0, 700);
@@ -154,6 +351,7 @@ void skills(){
 	chassis.moveToPoint(24, -59, 3000, {.forwards = false});
 	wheelLift.set_value(HIGH);
 	chassis.moveToPoint(-10, -59, 4000, {.forwards = false, .minSpeed = 127});
+	*/
 
 
 }
@@ -254,6 +452,42 @@ void rightRush(){
 
 // Right side normal code
 void rightSplit(){
+	allowedXOff = 0;
+	lemlib::setPose({17, -49.5, 0});
+	intaking = true;
+
+	chassis.moveToPoint(20, -30.5, 2000);
+	chassis.moveToPoint(22.5, -22.5, 2000, {}, false);
+	intaking = false;
+
+	chassis.turnToPoint(10.5, -13.5, 700);
+	chassis.moveToPoint(10.5, -13.5, 2000, {}, false);
+	intaking = false;
+	outtaking = true;
+	pros::delay(2000);
+	outtaking = false;
+	intaking = true;
+	allowedXOff = 4;
+	chassis.moveToPoint(47.6, -41, 2000, {.forwards = false, .maxSpeed = 100});
+	hood.set_value(LOW);
+	chassis.turnToPoint(47.5, -58, 700);
+	matchLoader.set_value(HIGH);
+	chassis.moveToPoint(47.5, -55,1000, {} , false);
+	chassis.moveToPoint(47.5, -61.5,600, {} , false);
+	rightMotors.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+	leftMotors.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+	rightMotors.brake();
+	leftMotors.brake();
+	chassis.moveToPoint(47.5, -29.5, 2000, {.forwards = false, .maxSpeed = 80}, false);
+	hood.set_value(HIGH);
+	pros::delay(1800);
+	chassis.moveToPoint(47.5, -46, 2000, {.maxSpeed = 80}, false);
+	chassis.moveToPoint(37.5, -26, 1000, {.forwards = false});
+	chassis.moveToPoint(38, -11, 1000, {.forwards = false}, false);
+	rightMotors.brake();
+	leftMotors.brake();
+
+	/*
 	//acceptedMCLError = 5;
 	intaking = true;
 	middleScore.set_value(HIGH);
@@ -289,6 +523,7 @@ void rightSplit(){
 	outtaking = true;
 	pros::delay(2000);
 	//chassis.moveToPoint(36, -40, 1000, {.forwards = false});
+	*/
 	/*
 	chassis.swingToPoint(42, -10, DriveSide::RIGHT, 1000);
 	chassis.moveToPoint(42, -15, 2000, {.forwards = false}, false);
@@ -336,7 +571,28 @@ void rightSplit(){
 
 // Left side code
 void leftRush(){
-	ramsete({{0, 0, 0}, {0, 24, 0}}, 1000, false, true);
+	intaking = true;
+	chassis.setPose({-13, -50, -90});
+	chassis.moveToPoint(-48, -48, 1000);
+	matchLoader.set_value(HIGH);
+	chassis.turnToHeading(180, 700);
+	chassis.moveToPoint(-48, -58.5, 1000, {}, false);
+	rightMotors.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+	leftMotors.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+	rightMotors.brake();
+	leftMotors.brake();
+	chassis.moveToPoint(-47, -30, 1000, {.forwards = false}, false);
+	hood.set_value(HIGH);
+	pros::delay(2000);
+	chassis.moveToPoint(-49, -48, 1000);
+	chassis.moveToPoint(-57, -26, 1000, {.forwards = false});
+	chassis.turnToHeading(180, 700);
+	chassis.moveToPoint(-57, -13, 1000, {.forwards = false});
+	chassis.turnToHeading(195, 700, {}, false);
+	rightMotors.brake();
+	leftMotors.brake();
+	
+
 	/*
 	chassis.setPose({-17.2, -51.2, 0});
 	hood.set_value(HIGH);
@@ -382,6 +638,55 @@ void leftRush(){
 }
 
 void leftSplit(){
+
+	allowedXOff = 0;
+	lemlib::setPose({-17, -49.5, 0});
+	descore.set_value(HIGH);
+	intaking = true;
+
+	chassis.moveToPoint(-20, -30.5, 2000);
+	chassis.moveToPoint(-22.5, -22.5, 2000, {}, false);
+	intaking = false;
+	middleScore.set_value(HIGH);
+
+	chassis.turnToHeading(-134,700);
+	chassis.moveToPoint(-10.5, -13.5, 2000, {.forwards = false}, false);
+	hood.set_value(HIGH);
+	intaking = true;
+	middleGoal = true;
+	pros::delay(2000);
+	middleGoal = false;
+	allowedXOff = 4;
+	middleScore.set_value(LOW);
+	chassis.moveToPoint(-47.6, -41, 2000, {.maxSpeed = 100});
+	hood.set_value(LOW);
+	matchLoader.set_value(HIGH);
+	chassis.turnToPoint(-47.5, -58, 700);
+	chassis.moveToPoint(-47.5, -55,1000, {} , false);
+	chassis.moveToPoint(-47.5, -61.5,600, {} , false);
+	rightMotors.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+	leftMotors.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+	rightMotors.brake();
+	leftMotors.brake();
+	chassis.moveToPoint(-47.5, -30.5, 2000, {.forwards = false, .maxSpeed = 80}, false);
+	hood.set_value(HIGH);
+	pros::delay(1800);
+	chassis.moveToPoint(-47.5, -35, 2000, {.maxSpeed = 80}, false);
+	chassis.turnToPoint(-15, -16, 1000, {.forwards = false});
+	hood.set_value(LOW);
+	middleScore.set_value(HIGH);
+	chassis.moveToPoint(-15, -15, 2000, {.forwards = false}, false);
+	chassis.moveToPoint(-13, -10.5, 2000, {.forwards = false}, false);
+	rightMotors.brake();
+	leftMotors.brake();
+
+	/*
+	chassis.moveToPoint(-47.5, -30.5, 2000, {.forwards = false, .minSpeed = 80}, false);
+	rightMotors.brake();
+	leftMotors.brake();
+	*/
+
+	/*
 	//acceptedMCLError = 5;
 	intaking = true;
 	middleScore.set_value(HIGH);
@@ -422,6 +727,7 @@ void leftSplit(){
 	chassis.moveToPoint(-15, -14.5, 1000, {.forwards = false, .maxSpeed = 50}, false);
 	intaking = true;
 	pros::delay(2000);
+	*/
 	/*
 	chassis.setPose({-17.2, -51.2, 0});
 	hood.set_value(HIGH);
@@ -512,8 +818,8 @@ void leftMiddle(){
 
 // Solo Atonomous Win Point Code
 void SAWP(){
-	chassis.setPose({-24, -48, 0});
-	//chassis.moveToPoint(0, 5, 1000);
+	//chassis.setPose({24, -48, 0});
+	chassis.moveToPoint(0, 5, 1000);
 	/*
 	acceptedMCLError = 5;
 	intaking = true;
@@ -540,7 +846,7 @@ void SAWP(){
 	rightMotors.brake();
 	*/
 
-	outtaking = true;
+	//outtaking = true;
 	//chassis.moveToPoint(0, 6, 10000, {.minSpeed = 127});
 	/*
     chassis.setPose({19.6, -47.8, 89});

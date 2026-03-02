@@ -21,8 +21,11 @@ bool redTeam = true;
 bool isSkills = false;
 bool arcade = true;
 
-int code = 6;
+int code = 3;
 int numOfCodes = 6;
+
+
+int middleStatus = 1;
 
 // controller
 pros::Controller controller(pros::E_CONTROLLER_MASTER);
@@ -30,29 +33,29 @@ pros::Controller controller(pros::E_CONTROLLER_MASTER);
 
 // Left and Right drive smotor groups
 pros::MotorGroup
-    leftMotors({-5, -1, -10},
+    leftMotors({-6, -13, -10},
                pros::MotorGearset::blue); 
                                           
 pros::MotorGroup rightMotors(
-    {8, 9, 21},
+    {8, 9, 2},
     pros::MotorGearset::blue); 
 
 
 // Inertial Sensor on port 19
-pros::Imu imu(20);
+pros::Imu imu(14);
 
 // Limit switch for changing code
 pros::adi::DigitalIn limitSwitch('o');
 
 // Optical sensor for color sosrt
-pros::Optical color(7);
+//pros::Optical color(7);
 
 
 // Matchloader piston
 pros::adi::DigitalOut matchLoader('a');
 
 // Tracking Wheel lift piston
-pros::adi::DigitalOut wheelLift('m');
+pros::adi::DigitalOut wheelLift('d');
 
 // Goal Descore piston
 pros::adi::DigitalOut descore('h');
@@ -69,17 +72,17 @@ pros::Motor intake_upper(-11, pros::MotorGearset::blue);
 pros::Rotation horizontalEnc(-16);
 
 // vertical tracking wheel 
-pros::Rotation verticalEnc(-6);
+pros::Rotation verticalEnc(-21);
 
 
 // Distance sensors for a simplified version of Monte Carlo Localization
-pros::Distance frontDistance(40);
-pros::Distance rightDistance(16);
+pros::Distance frontDistance(16);
+pros::Distance rightDistance(15);
 pros::Distance backDistance(17);
-pros::Distance leftDistance(50);
+pros::Distance leftDistance(19);
 
 
-lemlib::MCLSensors mcl(nullptr, 3.25, 6, &rightDistance, -0.75, 4.75, &backDistance, -4.25, 4.5, nullptr, 0.75, 4.75);
+lemlib::MCLSensors mcl(&frontDistance, 4, 4, &rightDistance, -1, 4, &backDistance, 4.5 ,4.5, &leftDistance, -2.75, 5.625);
 
 
 // Horizontal Tracking wheel lemlib settings
@@ -104,7 +107,7 @@ lemlib::Drivetrain drivetrain(
 lemlib::ControllerSettings
     linearController(11,  // proportional gain (kP)
                      0,   // integral gain (kI)
-                     50,   // derivative gain (kD)
+                     53,   // derivative gain (kD)
                      3, // anti windup
                     1, // small error range, in inches
                                               100, // small error range timeout, in milliseconds
@@ -194,7 +197,7 @@ void intakeControl() {
         
 
 
-
+        /*
         // Detects what color of ball is in the intake
         if ((color.get_hue() < 25 && color.get_hue() > 5) && color.get_proximity()>80){
             redBall = true;
@@ -206,24 +209,25 @@ void intakeControl() {
             blueBall = false;
             redBall = false; 
         }
+        */
 
         // Code to control the intake
-        if(controller.get_digital(pros::E_CONTROLLER_DIGITAL_L1) || intaking){
+        if((controller.get_digital(pros::E_CONTROLLER_DIGITAL_L1) || intaking)&& ((isSkills && middleStatus ==  3) || (isSkills && middleGoal))){
             middle = false;
-            upperSpeed += 127;
+            upperSpeed += 200;
+            intakeSpeed += 127;
+            
+        } else if(controller.get_digital(pros::E_CONTROLLER_DIGITAL_L1) || intaking){
+            middle = false;
+            upperSpeed += 600;
             intakeSpeed += 127;
             
         } 
         else if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_L2) || outtaking){
             middle = false;
-            upperSpeed -= 127;
+            upperSpeed -= 600;
             intakeSpeed -= 127;
 
-        } 
-        else if ((controller.get_digital(pros::E_CONTROLLER_DIGITAL_R1 )&&isSkills) || (middleGoal && isSkills)){
-            middle = true;
-            upperSpeed +=50;
-            intakeSpeed +=127;
         } else {
             middle = false;
             upperSpeed = 0;
@@ -247,7 +251,7 @@ void intakeControl() {
     	}
         //if(intake_upper.get_efficiency()<30 && intake_upper.get_power()>0) upperSpeed = 1;
         // Run motors
-        if (upperSpeed != 0)intake_upper.move(upperSpeed);
+        if (upperSpeed != 0)intake_upper.move_velocity(upperSpeed);
         else intake_upper.brake();
         if (intakeSpeed != 0)intake.move(intakeSpeed);
         else intake.brake();
@@ -316,7 +320,7 @@ void screenUpdate(){
         pros::lcd::set_text(3, "X: " + std::to_string(chassis.getPose().x));
         pros::lcd::set_text(4, "Y: " + std::to_string(chassis.getPose().y));
 	    pros::lcd::set_text(5, "Theta: " + std::to_string(chassis.getPose().theta));
-        pros::lcd::set_text(6, "Resets: " + std::to_string(numOfMatchloaderHits));
+        pros::lcd::set_text(6, "Reset Debug: " + std::to_string(debugValue));
 	switch (code){
 		case 1:
 			pros::lcd::set_text(1, "Skills");
@@ -356,8 +360,8 @@ void screenUpdate(){
 
 //Runs before the code starts to 
 void initialize() {
-    color.set_integration_time(3);
-	color.set_led_pwm(100);
+    //color.set_integration_time(3);
+	//color.set_led_pwm(100);
     pros::lcd::initialize(); // initialize brain screen
     chassis.calibrate(); // calibrate sensors
     mcl.calibrate(mcl); // clibrate distance sensors
@@ -415,6 +419,7 @@ void autonomous() {
 
 // Dirver Control Code
 void opcontrol() {
+    //skills();
     if (code == 1)isSkills = true;
     scoring = false;
 	intaking = false;
@@ -430,7 +435,6 @@ void opcontrol() {
     int liftStatus = 1;
     int lifStatus = 1;
     int hoodStatus = 1;
-    int middleStatus = 1;
     while (true) {
         float t = 0.1;  // can be changed
     float tt = 0.1; // can be changed
